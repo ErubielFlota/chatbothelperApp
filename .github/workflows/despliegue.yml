@@ -27,6 +27,7 @@ jobs:
         run: |
           flutter pub get
           flutter build web --release --base-href "/chatbothelperApp/"
+          touch build/web/.nojekyll
 
       - name: Publicar archivos compilados en GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
