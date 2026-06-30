@@ -20,6 +20,9 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Crear archivo .env
+        run: echo "${{ secrets.ENV_FILE }}" > .env
+
       - name: Instalar dependencias y compilar para Web
         run: |
           flutter pub get
@@ -28,5 +31,5 @@ jobs:
       - name: Publicar archivos compilados en GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: build/web # Carpeta donde Flutter genera la web
-          branch: gh-pages  # Rama secundaria donde se guardará la web pública
+          folder: build/web
+          branch: gh-pages
