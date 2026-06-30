@@ -1,0 +1,32 @@
+name: Despliegue Automático en GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Se ejecutará cada vez que subas cambios a la rama principal
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar el entorno de Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Instalar dependencias y compilar para Web
+        run: |
+          flutter pub get
+          flutter build web --release --base-href "/chatbothelperApp/"
+
+      - name: Publicar archivos compilados en GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build/web # Carpeta donde Flutter genera la web
+          branch: gh-pages  # Rama secundaria donde se guardará la web pública
