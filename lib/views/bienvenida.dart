@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'login.dart';
+import '../main.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -96,7 +96,7 @@ class WelcomeScreen extends StatelessWidget {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const LoginScreen(), // Cambiamos a la nueva pantalla
+                                  builder: (context) => const MainScreen(), // Cambiamos a la nueva pantalla
                                 ),
                               );
                             },

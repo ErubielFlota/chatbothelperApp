@@ -179,7 +179,7 @@ class _WebLayout extends StatelessWidget {
                         const SupabaseVideos(isWeb: true),
                         const SizedBox(height: 80),
                         
-                        _buildBannerLegal(onDestinationSelected)
+                        _buildBannerPlantillaInfo()
                       ],
                     ),
                   ),
@@ -240,7 +240,7 @@ class _WebLayout extends StatelessWidget {
     );
   }
 
-  Widget _buildBannerLegal(ValueChanged<int> onDest) {
+  Widget _buildBannerPlantillaInfo() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(48),
@@ -259,27 +259,53 @@ class _WebLayout extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            "Conoce las consecuencias legales", 
+            "Conoce nuestra plantilla informativa", 
             style: GoogleFonts.dmSans(fontSize: 30, fontWeight: FontWeight.bold, color: const Color(0xFF332255))
           ),
           const SizedBox(height: 16),
           const Text(
-            "La VSBG es un delito penado por la ley. Infórmate sobre tus derechos jurídicos de manera segura.", 
+            "Escanea el código QR o haz clic en el botón para descargar nuestro archivo PDF.", 
             textAlign: TextAlign.center, 
             style: TextStyle(fontSize: 16, color: Colors.black54)
           ),
           const SizedBox(height: 32),
-          FilledButton.icon(
-            onPressed: () => onDest(1),
-            icon: const Icon(Icons.gavel_rounded),
-            label: const Text("Explorar marco legal", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF6B52A3),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 22),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 2,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Contenedor del código QR
+              Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF6B52A3).withOpacity(0.2), width: 2),
+                ),
+                child: Center(
+                  // Puedes reemplazar este Icono por: Image.network('url_de_tu_qr.png')
+                  child: Image.asset('assets/QRCartilla.png'),
+                ),
+              ),
+              const SizedBox(width: 48),
+              // Botón del PDF
+              FilledButton.icon(
+                onPressed: () async {
+                  final Uri url = Uri.parse('https://drive.google.com/file/d/1FOoF8lHy_5GpIyB0C9BN2mW8KRbrnjsC/view?usp=sharing'); // <-- Reemplaza con tu enlace PDF real
+                  if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                    debugPrint('No se pudo abrir $url');
+                  }
+                },
+                icon: const Icon(Icons.picture_as_pdf_rounded),
+                label: const Text("Descargar PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF6B52A3),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 22),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 2,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -438,20 +464,54 @@ class _MobileLayout extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SectionTitle(title: "Consecuencias legales"),
+                    const SectionTitle(title: "Conoce nuestra plantilla informativa"),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 58,
-                      child: FilledButton.tonalIcon(
-                        onPressed: () => onDestinationSelected(1),
-                        icon: const Icon(Icons.stars_rounded, size: 24),
-                        label: const Text("Ver más", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF6B52A3).withOpacity(0.1),
-                          foregroundColor: const Color(0xFF6B52A3),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                        ),
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6B52A3).withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: const Color(0xFF6B52A3).withOpacity(0.1)),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            
+                            child: Image.asset('assets/QRCartilla.png'),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            "Escanea el código o descarga el archivo para más detalles.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.black54, fontSize: 14),
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 54,
+                            child: FilledButton.icon(
+                              onPressed: () async {
+                                final Uri url = Uri.parse('https://drive.google.com/file/d/1FOoF8lHy_5GpIyB0C9BN2mW8KRbrnjsC/view?usp=sharing'); // <-- Reemplaza con tu enlace PDF real
+                                if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                                  debugPrint('No se pudo abrir $url');
+                                }
+                              },
+                              icon: const Icon(Icons.picture_as_pdf_rounded, size: 22),
+                              label: const Text("Descargar PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF6B52A3),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
