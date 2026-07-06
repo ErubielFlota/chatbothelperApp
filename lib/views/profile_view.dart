@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'red_apoyo_view.dart'; 
+import 'login.dart'; // Importamos la vista de login que ya diseñamos
 
 class ProfileView extends StatefulWidget {
   final bool isWeb;
@@ -15,17 +17,14 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   late final StreamSubscription<AuthState> _authSubscription;
   User? _currentUser;
-  
-  // Controladores para el formulario de login/registro
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _isLogin = true; // Para alternar entre Iniciar Sesión y Registrarse
 
   @override
   void initState() {
     super.initState();
-    // Escuchar los cambios de estado de la sesión (Login / Logout)
+    // Validar inmediatamente si hay sesión activa al abrir la pantalla
+    _currentUser = Supabase.instance.client.auth.currentUser;
+
     _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       if (mounted) {
         setState(() {
@@ -37,52 +36,15 @@ class _ProfileViewState extends State<ProfileView> {
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
     _authSubscription.cancel();
     super.dispose();
   }
 
-  // --- MÉTODOS DE AUTENTICACIÓN ---
-
-  Future<void> _handleAuth() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
-    if (email.isEmpty || password.isEmpty) {
-      _showMessage("Por favor, llena todos los campos.", isError: true);
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      if (_isLogin) {
-        await Supabase.instance.client.auth.signInWithPassword(
-          email: email,
-          password: password,
-        );
-      } else {
-        await Supabase.instance.client.auth.signUp(
-          email: email,
-          password: password,
-        );
-        _showMessage("Registro exitoso. Por favor revisa tu correo para confirmar (si está configurado) o inicia sesión.");
-        setState(() => _isLogin = true); // Cambiar a la vista de login tras registro
-      }
-    } on AuthException catch (e) {
-      _showMessage(e.message, isError: true);
-    } catch (e) {
-      _showMessage("Ocurrió un error inesperado.", isError: true);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _signOut() async {
+  Future<void> _emergencySignOut() async {
     setState(() => _isLoading = true);
     try {
       await Supabase.instance.client.auth.signOut();
+      _showMessage("Sesión cerrada de forma segura.");
     } catch (e) {
       _showMessage("Error al cerrar sesión.", isError: true);
     } finally {
@@ -104,176 +66,156 @@ class _ProfileViewState extends State<ProfileView> {
 
   @override
   Widget build(BuildContext context) {
-    // Si el usuario está logueado mostramos el perfil, si no, el formulario de auth
     final Widget content = _currentUser == null 
-        ? _buildAuthForm() 
-        : _buildProfileContent();
+        ? _buildUnauthenticatedState() // Vista si NO hay sesión
+        : _buildProfileContent();      // Vista si SÍ hay sesión
 
-    if (widget.isWeb) {
-      return SingleChildScrollView(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1440),
-            child: content,
-          ),
+    // Envolver en Scaffold proporciona automáticamente un AppBar y botón "Atrás" nativo
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: AppBar(
+        title: Text(
+          "Mi Perfil", 
+          style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, fontSize: widget.isWeb ? 24 : 20)
         ),
-      );
-    }
-
-    return SingleChildScrollView(child: content);
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      body: widget.isWeb
+          ? SingleChildScrollView(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1440),
+                  child: content,
+                ),
+              ),
+            )
+          : SingleChildScrollView(child: content),
+    );
   }
 
-  // Vista cuando el usuario NO ha iniciado sesión
-  Widget _buildAuthForm() {
+  // --- ESTADO: USUARIO NO AUTENTICADO ---
+  Widget _buildUnauthenticatedState() {
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: widget.isWeb ? 200.0 : 24.0, 
-        vertical: 40.0
+        horizontal: widget.isWeb ? 200.0 : 32.0, 
+        vertical: widget.isWeb ? 80.0 : 60.0
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Icon(
+            Icons.lock_person_rounded, 
+            size: widget.isWeb ? 100 : 80, 
+            color: const Color(0xFF6B52A3).withValues(alpha: 0.5)
+          ),
+          const SizedBox(height: 24),
           Text(
-            _isLogin ? "Iniciar Sesión" : "Crear Cuenta",
+            "Inicia sesión para ver tu perfil",
             style: GoogleFonts.dmSans(
-              fontSize: widget.isWeb ? 32 : 28, 
+              fontSize: widget.isWeb ? 32 : 24,
               fontWeight: FontWeight.bold, 
               color: const Color(0xFF221144)
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
-            _isLogin ? "Accede a tu cuenta para continuar" : "Regístrate para guardar tu progreso",
-            style: const TextStyle(fontSize: 16, color: Colors.black54),
+            "Al acceder podrás configurar tu red de apoyo, ajustar tu seguridad y mantener tu información respaldada.",
+            style: TextStyle(fontSize: widget.isWeb ? 16 : 14, color: Colors.black54, height: 1.5),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 40),
           
-          TextField(
-            controller: _emailController,
-            decoration: InputDecoration(
-              labelText: "Correo electrónico",
-              prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF6B52A3)),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFF6B52A3), width: 2),
-              ),
-            ),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 20),
-          
-          TextField(
-            controller: _passwordController,
-            decoration: InputDecoration(
-              labelText: "Contraseña",
-              prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF6B52A3)),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFF6B52A3), width: 2),
-              ),
-            ),
-            obscureText: true,
-          ),
-          const SizedBox(height: 32),
-          
           SizedBox(
-            height: 54,
-            child: FilledButton(
-              onPressed: _isLoading ? null : _handleAuth,
+            height: widget.isWeb ? 54 : 50,
+            child: FilledButton.icon(
+              onPressed: () {
+                // Navegamos hacia la pantalla bonita de Login que diseñamos antes
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              },
+              icon: const Icon(Icons.login_rounded),
+              label: const Text("Ir a iniciar sesión", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF6B52A3),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              child: _isLoading 
-                ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text(_isLogin ? "Entrar" : "Registrarse", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
-          ),
-          const SizedBox(height: 24),
-          
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _isLogin = !_isLogin;
-                _emailController.clear();
-                _passwordController.clear();
-              });
-            },
-            child: Text(
-              _isLogin ? "¿No tienes cuenta? Regístrate aquí" : "¿Ya tienes cuenta? Inicia sesión",
-              style: const TextStyle(color: Color(0xFF6B52A3), fontWeight: FontWeight.w600),
             ),
           ),
         ],
       ),
     );
   }
-
-  // Vista cuando el usuario SÍ ha iniciado sesión
+  
+  // --- ESTADO: USUARIO AUTENTICADO ---
   Widget _buildProfileContent() {
-    // Obtenemos la primera letra del correo para el avatar
     final userEmail = _currentUser?.email ?? "usuario@correo.com";
     final initial = userEmail.isNotEmpty ? userEmail[0].toUpperCase() : "U";
 
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: widget.isWeb ? 40.0 : 20.0, 
-        vertical: 24.0
+        vertical: widget.isWeb ? 16.0 : 8.0
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Mi Cuenta",
-            style: GoogleFonts.dmSans(
-              fontSize: widget.isWeb ? 32 : 24, 
-              fontWeight: FontWeight.bold, 
-              color: Colors.black87
-            ),
-          ),
-          const SizedBox(height: 24),
-          
+          // --- TARJETA DE USUARIO M3 ---
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(widget.isWeb ? 20 : 16), 
             decoration: BoxDecoration(
-              color: const Color(0xFF6B52A3).withOpacity(0.05),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFFEAB8FF).withOpacity(0.4)),
+              color: const Color(0xFFF3EDF7), 
+              borderRadius: BorderRadius.circular(widget.isWeb ? 28 : 20),
             ),
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: widget.isWeb ? 40 : 32,
+                  radius: widget.isWeb ? 40 : 28,
                   backgroundColor: const Color(0xFF6B52A3),
                   child: Text(
                     initial,
                     style: TextStyle(
-                      fontSize: widget.isWeb ? 32 : 24, 
+                      fontSize: widget.isWeb ? 32 : 20, 
                       color: Colors.white, 
-                      fontWeight: FontWeight.bold
+                      fontWeight: FontWeight.w600
                     ),
                   ),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 16), 
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         userEmail,
-                        style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                        style: GoogleFonts.dmSans(
+                          fontSize: widget.isWeb ? 18 : 16, 
+                          fontWeight: FontWeight.bold, 
+                          color: const Color(0xFF1D1B20)
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        "Sesión activa y segura",
-                        style: TextStyle(fontSize: 14, color: Colors.black54),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(Icons.verified_user_rounded, size: widget.isWeb ? 14 : 12, color: const Color(0xFF4F378B)),
+                          const SizedBox(width: 4),
+                          Text(
+                            "Sesión activa y segura",
+                            style: TextStyle(
+                              fontSize: widget.isWeb ? 14 : 12, 
+                              color: const Color(0xFF4F378B).withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w500
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -281,26 +223,91 @@ class _ProfileViewState extends State<ProfileView> {
               ],
             ),
           ),
+          
           const SizedBox(height: 32),
+          Text(
+            "Ajustes de Seguridad",
+            style: GoogleFonts.dmSans(
+              fontSize: widget.isWeb ? 16 : 15, 
+              fontWeight: FontWeight.bold, 
+              color: const Color(0xFF49454F),
+            ),
+          ),
+          const SizedBox(height: 12),
           
-          _buildProfileOption(title: "Configuración de privacidad", icon: Icons.privacy_tip_outlined),
-          _buildProfileOption(title: "Historial de consultas", icon: Icons.history_rounded),
-          _buildProfileOption(title: "Centro de ayuda", icon: Icons.help_outline_rounded),
+          // --- MENÚ AGRUPADO (Estilo Premium/M3) ---
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(widget.isWeb ? 28 : 20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                )
+              ],
+            ),
+            child: Column(
+              children: [
+                _buildM3ListTile(
+                  title: "Red de Apoyo", 
+                  subtitle: "Configura tus contactos de confianza",
+                  icon: Icons.people_alt_outlined,
+                  iconColor: const Color(0xFF6B52A3),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const RedApoyoView()));
+                  }
+                ),
+                const Divider(height: 1, indent: 64, endIndent: 20, color: Color(0xFFF4F2F6)),
+                _buildM3ListTile(
+                  title: "Modo Discreto", 
+                  subtitle: "Oculta el rastro de la aplicación",
+                  icon: Icons.visibility_off_outlined,
+                  iconColor: Colors.grey.shade700,
+                  onTap: () {
+                     _showMessage("Próximamente: Opciones de camuflaje");
+                  }
+                ),
+                const Divider(height: 1, indent: 64, endIndent: 20, color: Color(0xFFF4F2F6)),
+                _buildM3ListTile(
+                  title: "Centro de ayuda", 
+                  subtitle: "Preguntas frecuentes y soporte",
+                  icon: Icons.help_outline_rounded,
+                  iconColor: const Color(0xFF6B52A3),
+                  isLast: true, 
+                  onTap: () {
+                     _showMessage("Abriendo centro de ayuda...");
+                  }
+                ),
+              ],
+            ),
+          ),
           
-          const SizedBox(height: 24),
+          const SizedBox(height: 40),
           
+          // --- BOTÓN DE EMERGENCIA M3 ---
           SizedBox(
-            width: widget.isWeb ? 200 : double.infinity,
-            height: 50,
-            child: OutlinedButton.icon(
-              onPressed: _isLoading ? null : _signOut,
+            width: double.infinity,
+            height: widget.isWeb ? 56 : 48, 
+            child: FilledButton.icon(
+              onPressed: _isLoading ? null : _emergencySignOut,
               icon: _isLoading 
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.logout_rounded, color: Colors.redAccent),
-              label: const Text("Cerrar Sesión", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.redAccent, width: 1.5),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : Icon(Icons.warning_amber_rounded, size: widget.isWeb ? 22 : 18),
+              label: Text(
+                "Cierre Rápido y Seguro", 
+                style: GoogleFonts.dmSans(
+                  fontWeight: FontWeight.bold, 
+                  fontSize: widget.isWeb ? 16 : 14,
+                  letterSpacing: 0.1,
+                )
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFB3261E), 
+                foregroundColor: Colors.white,
+                shape: const StadiumBorder(), 
+                elevation: 0,
               ),
             ),
           ),
@@ -311,21 +318,52 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  Widget _buildProfileOption({required String title, required IconData icon}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEBE8F0), width: 1.5),
+  Widget _buildM3ListTile({
+    required String title, 
+    required String subtitle,
+    required IconData icon, 
+    required Color iconColor,
+    required VoidCallback onTap,
+    bool isLast = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(title == "Red de Apoyo" ? (widget.isWeb ? 28 : 20) : 0),
+        bottom: Radius.circular(isLast ? (widget.isWeb ? 28 : 20) : 0),
       ),
-      child: ListTile(
-        onTap: () {
-          // Aquí puedes añadir la navegación a las sub-pantallas
-        },
-        leading: Icon(icon, color: const Color(0xFF6B52A3)),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.black26),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: widget.isWeb ? 20 : 16, vertical: widget.isWeb ? 16 : 12),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(widget.isWeb ? 10 : 8),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: iconColor, size: widget.isWeb ? 22 : 18),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title, 
+                    style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, fontSize: widget.isWeb ? 16 : 15, color: const Color(0xFF1D1B20))
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle, 
+                    style: TextStyle(fontSize: widget.isWeb ? 13 : 12, color: const Color(0xFF49454F)) 
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, size: widget.isWeb ? 24 : 20, color: const Color(0xFFCAC4D0)),
+          ],
+        ),
       ),
     );
   }

@@ -58,7 +58,7 @@ class LegalView extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: topics.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            separatorBuilder: (context, index) => const SizedBox(height: 12), // Reducido de 16 a 12
             itemBuilder: (context, index) {
               final topic = topics[index];
               return _buildExpandedLegalCard(
@@ -67,6 +67,7 @@ class LegalView extends StatelessWidget {
                 description: topic['short_description'] ?? '',
                 detailedContent: topic['detailed_content'] ?? '',
                 icon: _getIconData(topic['icon_identifier']),
+                isWeb: isWeb, // Pasamos el parámetro para adaptar la tarjeta
               );
             },
           );
@@ -75,7 +76,7 @@ class LegalView extends StatelessWidget {
         final mainContent = Padding(
           padding: EdgeInsets.symmetric(
             horizontal: isWeb ? 40.0 : 20.0, 
-            vertical: 24.0
+            vertical: isWeb ? 24.0 : 16.0 // Menos padding superior en móvil
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,22 +84,22 @@ class LegalView extends StatelessWidget {
               Text(
                 "Marco Legal y Derechos",
                 style: GoogleFonts.dmSans(
-                  fontSize: isWeb ? 32 : 24, 
+                  fontSize: isWeb ? 32 : 24, // Escala adaptada
                   fontWeight: FontWeight.bold, 
                   color: Colors.black87
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              SizedBox(height: isWeb ? 8 : 4),
+              Text(
                 "Información estructurada sobre normativas vigentes, derechos de las víctimas y rutas institucionales de denuncia.",
-                style: TextStyle(fontSize: 15, color: Colors.black54),
+                style: TextStyle(fontSize: isWeb ? 15 : 14, color: Colors.black54), // Texto más ligero
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24), // Reducido de 32 a 24
               
               // Aquí se renderiza la lista dinámica desde Supabase
               dynamicContent,
               
-              SizedBox(height: isWeb ? 40 : 100), // Evita colisiones visuales en móvil
+              SizedBox(height: isWeb ? 40 : 100), 
             ],
           ),
         );
@@ -119,51 +120,54 @@ class LegalView extends StatelessWidget {
     );
   }
 
-  // Tarjeta modificada para soportar expansión manteniendo tu diseño original de UI
   Widget _buildExpandedLegalCard({
     required BuildContext context,
     required String title,
     required String description,
     required String detailedContent,
     required IconData icon,
+    required bool isWeb,
   }) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(isWeb ? 20 : 16), // Bordes más suaves en móvil
         border: Border.all(color: const Color(0xFFEBE8F0), width: 1.5),
       ),
       child: Theme(
-        // Remueve las líneas divisorias y el sombreado por defecto que trae ExpansionTile
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          tilePadding: const EdgeInsets.all(24),
-          childrenPadding: const EdgeInsets.only(left: 88, right: 24, bottom: 24),
+          // Paddings reducidos dinámicamente para versión móvil
+          tilePadding: EdgeInsets.symmetric(horizontal: isWeb ? 24 : 16, vertical: isWeb ? 8 : 4),
+          childrenPadding: EdgeInsets.only(
+            left: isWeb ? 88 : 64, // El texto se alinea un poco más a la izquierda en móvil
+            right: isWeb ? 24 : 16, 
+            bottom: isWeb ? 24 : 16
+          ),
           leading: Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(isWeb ? 12 : 10), // Círculo de ícono más pequeño
             decoration: BoxDecoration(
               color: const Color(0xFFEAB8FF).withAlpha(40),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: const Color(0xFF6B52A3)),
+            child: Icon(icon, color: const Color(0xFF6B52A3), size: isWeb ? 24 : 20),
           ),
           title: Text(
             title,
             style: GoogleFonts.dmSans(
-              fontSize: 18, 
+              fontSize: isWeb ? 18 : 16, // Tamaño de fuente optimizado
               fontWeight: FontWeight.bold, 
               color: Colors.black87
             ),
           ),
           subtitle: Padding(
-            padding: const EdgeInsets.only(top: 8.0),
+            padding: const EdgeInsets.only(top: 4.0), // Menos espacio entre título y subtítulo
             child: Text(
               description,
-              style: const TextStyle(fontSize: 14, color: Colors.black54, height: 1.5),
+              style: TextStyle(fontSize: isWeb ? 14 : 13, color: Colors.black54, height: 1.4),
             ),
           ),
-          // Icono de flecha estilizado
           trailing: const Icon(Icons.expand_more_rounded, color: Color(0xFF6B52A3)),
           children: [
             Align(
@@ -171,9 +175,9 @@ class LegalView extends StatelessWidget {
               child: Text(
                 detailedContent,
                 style: GoogleFonts.dmSans(
-                  fontSize: 14,
+                  fontSize: isWeb ? 14 : 13, // Texto detallado ligeramente menor
                   color: Colors.black87,
-                  height: 1.6,
+                  height: 1.5,
                 ),
               ),
             ),

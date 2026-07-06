@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../main.dart'; // Asegúrate de que esta ruta apunte correctamente a tu main.dart
+import '../main.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,31 +15,28 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _isSignUp = false; // Alterna entre Iniciar Sesión y Crear Cuenta
+  bool _isSignUp = false;
   bool _obscurePassword = true;
 
-  // Instancia de Supabase
   final supabase = Supabase.instance.client;
-  
-  // Variable para escuchar el estado de la sesión
   late final StreamSubscription<AuthState> _authSubscription;
+
+  final Color _primaryColor = const Color(0xFF6B52A3);
 
   @override
   void initState() {
     super.initState();
-    
-    // Configuramos el escuchador para detectar cuando el usuario regresa de Google
     _authSubscription = supabase.auth.onAuthStateChange.listen((data) {
       final AuthChangeEvent event = data.event;
       final Session? session = data.session;
 
-      // Si el evento es un inicio de sesión exitoso y la sesión existe, lo dejamos pasar
       if (event == AuthChangeEvent.signedIn && session != null) {
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MainScreen()),
-          );
+          Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (route) => false, // Esto elimina cualquier ruta previa (evita duplicados)
+        );
         }
       }
     });
@@ -47,14 +44,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    // Es vital cancelar la suscripción al salir para evitar fugas de memoria
-    _authSubscription.cancel(); 
+    _authSubscription.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  // Lógica: Iniciar sesión con Correo
   Future<void> _signIn() async {
     setState(() => _isLoading = true);
     try {
@@ -62,17 +57,15 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // La navegación la manejará automáticamente el listener de arriba
     } on AuthException catch (e) {
       _showError(e.message);
       if (mounted) setState(() => _isLoading = false);
     } catch (e) {
       _showError('Ocurrió un error inesperado');
       if (mounted) setState(() => _isLoading = false);
-    } 
+    }
   }
 
-  // Lógica: Registrarse con Correo
   Future<void> _signUp() async {
     setState(() => _isLoading = true);
     try {
@@ -82,12 +75,14 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Registro exitoso. Revisa tu correo para confirmar tu cuenta.'),
-            backgroundColor: Color(0xFF6B52A3),
+          SnackBar(
+            content: const Text('Registro exitoso. Revisa tu correo para confirmar tu cuenta.'),
+            backgroundColor: _primaryColor,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
-        setState(() => _isSignUp = false); // Regresa a la vista de login
+        setState(() => _isSignUp = false);
       }
     } on AuthException catch (e) {
       _showError(e.message);
@@ -98,14 +93,12 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Lógica: Iniciar sesión con Google
   Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
     try {
       await supabase.auth.signInWithOAuth(
         OAuthProvider.google,
-        // Usamos el mismo scheme que configuramos en AndroidManifest.xml
-        redirectTo: 'chatbothelper://login-callback', 
+        redirectTo: 'chatbothelper://login-callback',
       );
     } on AuthException catch (e) {
       _showError(e.message);
@@ -113,152 +106,201 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       _showError('Ocurrió un error al conectar con Google');
       if (mounted) setState(() => _isLoading = false);
-    } 
+    }
   }
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: const Color(0xFF991B1B), // Rojo suave para errores
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final surfaceColor = Theme.of(context).colorScheme.surface;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 450), // Tarjeta centrada y contenida
+              constraints: const BoxConstraints(maxWidth: 450),
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Container(
-                  padding: const EdgeInsets.all(32.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 24,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                child: Card(
+                  elevation: 0,
+                  color: surfaceColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Encabezado
-                      Icon(Icons.shield_rounded, size: 48, color: const Color(0xFF6B52A3).withValues(alpha: 0.8)),
-                      const SizedBox(height: 24),
-                      Text(
-                        _isSignUp ? "Crear una cuenta" : "Iniciar Sesión",
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.dmSans(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF111827),
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "Accede a tu asistente de manera segura.",
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.dmSans(fontSize: 15, color: const Color(0xFF6B7280)),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Campos de Texto
-                      _buildTextField(
-                        controller: _emailController,
-                        label: "Correo electrónico",
-                        icon: Icons.email_outlined,
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _passwordController,
-                        label: "Contraseña",
-                        icon: Icons.lock_outline_rounded,
-                        obscureText: _obscurePassword,
-                        onTogglePassword: () => setState(() => _obscurePassword = !_obscurePassword),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Botón Principal
-                      FilledButton(
-                        onPressed: _isLoading ? null : (_isSignUp ? _signUp : _signIn),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF6B52A3),
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 0,
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20, width: 20,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                              )
-                            : Text(
-                                _isSignUp ? "Registrarse" : "Ingresar",
-                                style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                      ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Divisor
-                      Row(
-                        children: [
-                          const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text("O continuar con", style: TextStyle(color: const Color(0xFF9CA3AF), fontSize: 13)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // 1. Tarjeta informativa de beneficios (Ahora en la parte superior)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: _primaryColor.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: _primaryColor.withValues(alpha: 0.15)),
                           ),
-                          const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.info_outline_rounded, color: _primaryColor, size: 22),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  "Al iniciar sesión podrás acceder a funciones como agregar números de apoyo, personalizar tu perfil y mucho más.",
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
 
-                      // Botón de Google
-                      OutlinedButton.icon(
-                        onPressed: _isLoading ? null : _signInWithGoogle,
-                        icon: const Icon(Icons.g_mobiledata_rounded, size: 28, color: Color(0xFF111827)), 
-                        label: Text(
-                          "Google",
-                          style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w600, color: const Color(0xFF111827)),
+                        // 2. Opciones de inicio de sesión (Debajo del mensaje)
+                        Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: _primaryColor.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _isSignUp ? Icons.person_add_rounded : Icons.waving_hand_rounded,
+                              size: 42,
+                              color: _primaryColor,
+                            ),
+                          ),
                         ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: const BorderSide(color: Color(0xFFE5E7EB)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        const SizedBox(height: 24),
+                        Text(
+                          _isSignUp ? "Crea tu cuenta" : "¡Hola de nuevo!",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 32),
 
-                      // Alternar entre Login y Registro
-                      TextButton(
-                        onPressed: () => setState(() {
-                          _isSignUp = !_isSignUp;
-                          _emailController.clear();
-                          _passwordController.clear();
-                        }),
-                        style: TextButton.styleFrom(foregroundColor: const Color(0xFF6B52A3)),
-                        child: Text(
-                          _isSignUp ? "¿Ya tienes cuenta? Inicia sesión" : "¿No tienes cuenta? Regístrate",
-                          style: GoogleFonts.dmSans(fontWeight: FontWeight.w600),
+                        // Campos de Texto
+                        _buildTextField(
+                          controller: _emailController,
+                          label: "Correo electrónico",
+                          icon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _passwordController,
+                          label: "Contraseña",
+                          icon: Icons.lock_outline_rounded,
+                          obscureText: _obscurePassword,
+                          onTogglePassword: () => setState(() => _obscurePassword = !_obscurePassword),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Botón Principal
+                        FilledButton(
+                          onPressed: _isLoading ? null : (_isSignUp ? _signUp : _signIn),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: _primaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 24, width: 24,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                )
+                              : Text(
+                                  _isSignUp ? "Registrarme" : "Ingresar",
+                                  style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                        ),
+                        const SizedBox(height: 24),
+                        
+                        // Divisor
+                        Row(
+                          children: [
+                            const Expanded(child: Divider()),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                "O continuar con", 
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13)
+                              ),
+                            ),
+                            const Expanded(child: Divider()),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Botón de Google
+                        OutlinedButton.icon(
+                          onPressed: _isLoading ? null : _signInWithGoogle,
+                          icon: Image.network(
+                            'https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg',
+                            width: 24,
+                            height: 24,
+                            errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata_rounded, size: 28),
+                          ),
+                          label: Text(
+                            "Google",
+                            style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Alternar entre Login y Registro
+                        TextButton(
+                          onPressed: () => setState(() {
+                            _isSignUp = !_isSignUp;
+                            _emailController.clear();
+                            _passwordController.clear();
+                          }),
+                          style: TextButton.styleFrom(
+                            foregroundColor: _primaryColor,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Text(
+                            _isSignUp ? "¿Ya tienes cuenta? Inicia sesión" : "¿No tienes cuenta? Regístrate",
+                            style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, fontSize: 15),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -269,7 +311,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Widget reutilizable para los campos de texto
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -278,31 +319,35 @@ class _LoginScreenState extends State<LoginScreen> {
     TextInputType keyboardType = TextInputType.text,
     VoidCallback? onTogglePassword,
   }) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      style: const TextStyle(fontSize: 15, color: Color(0xFF111827)),
+      style: GoogleFonts.dmSans(fontSize: 15),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Color(0xFF6B7280)),
-        prefixIcon: Icon(icon, color: const Color(0xFF9CA3AF), size: 20),
+        prefixIcon: Icon(icon, size: 22),
         suffixIcon: onTogglePassword != null
             ? IconButton(
-                icon: Icon(obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: const Color(0xFF9CA3AF), size: 20),
+                icon: Icon(obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 22),
                 onPressed: onTogglePassword,
               )
             : null,
         filled: true,
-        fillColor: const Color(0xFFF9FAFB),
+        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Colors.transparent),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6B52A3), width: 1.5),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: _primaryColor, width: 2),
         ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       ),
     );
   }

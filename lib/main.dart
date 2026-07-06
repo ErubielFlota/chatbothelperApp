@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:chatbothelper/views/bienvenida.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -48,21 +49,22 @@ class ChatbotHelperApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const seedColor = Color(0xFF6B52A3);
-
+    
     return MaterialApp(
-      title: 'Chatbot Helper',
+      title: 'VozSegura', 
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: seedColor,
-          brightness: Brightness.light,
-          surface: const Color(0xFFF9FAFB),
+          primary: seedColor,
+          surface: const Color(0xFFFAF9FC), 
+          surfaceContainerHighest: const Color(0xFFF3EDF7), 
         ),
         textTheme: GoogleFonts.dmSansTextTheme(Theme.of(context).textTheme),
-        scaffoldBackgroundColor: const Color(0xFFF9FAFB), 
+        scaffoldBackgroundColor: const Color(0xFFFAF9FC), 
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
+          backgroundColor: Color(0xFFFAF9FC),
           surfaceTintColor: Colors.transparent,
           elevation: 0,
         ),
@@ -119,11 +121,11 @@ class _WebLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildWebNavBar(selectedIndex, onDestinationSelected),
+      appBar: _buildWebNavBar(context, selectedIndex, onDestinationSelected),
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 400),
-        switchInCurve: Curves.easeInOutCubic,
-        switchOutCurve: Curves.easeInOutCubic,
+        duration: const Duration(milliseconds: 350),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
         child: KeyedSubtree(
           key: ValueKey<int>(selectedIndex),
           child: _buildWebBody(),
@@ -134,12 +136,9 @@ class _WebLayout extends StatelessWidget {
 
   Widget _buildWebBody() {
     switch (selectedIndex) {
-      case 1:
-        return const LegalView(isWeb: true);
-      case 2:
-        return const ChatBotView(isWeb: true);
-      case 3:
-        return const ProfileView(isWeb: true);
+      case 1: return const LegalView(isWeb: true);
+      case 2: return const ChatBotView(isWeb: true);
+      // Eliminamos el case 3 (Perfil) porque ahora se abre por encima con Navigator.push
       case 0:
       default:
         return SingleChildScrollView(
@@ -151,33 +150,32 @@ class _WebLayout extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1440),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 60.0, vertical: 40.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 60.0, vertical: 60.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SupabaseSeccionesDinamicas(isWeb: true),
-                        const SizedBox(height: 60),
+                        const SizedBox(height: 80),
                         
-                        const SectionTitle(title: "¿En dónde puede existir la VSBG?"),
+                        const SectionTitle(isWeb: true, title: "¿En dónde puede existir la violencia?", subtitle: "Conoce los espacios más comunes."),
                         const SizedBox(height: 32),
                         const SupabaseLugaresVSBG(isWeb: true),
-                        const SizedBox(height: 60),
-
-                        const SectionTitle(title: "Mitos vs Realidades"),
-                        const SizedBox(height: 24),
-                        const SupabaseMitos(isWeb: true),
-                        const SizedBox(height: 60),
-
-                        const SectionTitle(title: "El Violentómetro"),
-                        const Text("Mide los niveles de violencia. El abuso siempre escala.", style: TextStyle(color: Colors.black54, fontSize: 16)),
-                        const SizedBox(height: 24),
-                        const SupabaseViolentometro(isWeb: true),
-                        const SizedBox(height: 60),
-
-                        const SectionTitle(title: "Videoteca Informativa"),
-                        const SizedBox(height: 24),
-                        const SupabaseVideos(isWeb: true),
                         const SizedBox(height: 80),
+
+                        const SectionTitle(isWeb: true, title: "Mitos vs Realidades", subtitle: "Desmintiendo creencias comunes."),
+                        const SizedBox(height: 32),
+                        const SupabaseMitos(isWeb: true),
+                        const SizedBox(height: 80),
+
+                        const SectionTitle(isWeb: true, title: "El Violentómetro", subtitle: "Mide los niveles de violencia. El abuso siempre escala."),
+                        const SizedBox(height: 32),
+                        const SupabaseViolentometro(isWeb: true),
+                        const SizedBox(height: 80),
+
+                        const SectionTitle(isWeb: true, title: "Videoteca Informativa", subtitle: "Recursos audiovisuales de apoyo."),
+                        const SizedBox(height: 32),
+                        const SupabaseVideos(isWeb: true),
+                        const SizedBox(height: 100),
                         
                         _buildBannerPlantillaInfo()
                       ],
@@ -191,31 +189,31 @@ class _WebLayout extends StatelessWidget {
     }
   }
 
-  PreferredSizeWidget _buildWebNavBar(int selectedIndex, ValueChanged<int> onDestinationSelected) {
+  PreferredSizeWidget _buildWebNavBar(BuildContext context, int selectedIndex, ValueChanged<int> onDestinationSelected) {
     return AppBar(
-      backgroundColor: Colors.white.withOpacity(0.94),
+      backgroundColor: Colors.white.withOpacity(0.98),
       elevation: 0,
       surfaceTintColor: Colors.transparent,
-      toolbarHeight: 85,
+      toolbarHeight: 90,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Container(color: Colors.black.withOpacity(0.04), height: 1), 
+        child: Container(color: const Color(0xFFF0EBF5), height: 1), 
       ),
       title: Row(
         children: [
           const SizedBox(width: 32),
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF6B52A3).withOpacity(0.12), 
-              borderRadius: BorderRadius.circular(14)
+              gradient: const LinearGradient(colors: [Color(0xFF6B52A3), Color(0xFF8B6BCC)]),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(Icons.shield_outlined, color: Color(0xFF6B52A3), size: 26),
+            child: const Icon(Icons.shield_outlined, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 16),
           Text(
-            "Chatbot Helper", 
-            style: GoogleFonts.dmSans(fontWeight: FontWeight.w800, color: const Color(0xFF221144), fontSize: 24)
+            "VozSegura", 
+            style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, color: const Color(0xFF1D1B20), fontSize: 24, letterSpacing: -0.5)
           ),
         ],
       ),
@@ -227,12 +225,27 @@ class _WebLayout extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(right: 60.0),
           child: InkWell(
-            onTap: () => onDestinationSelected(3),
-            customBorder: const CircleBorder(),
-            child: CircleAvatar(
-              backgroundColor: const Color(0xFF6B52A3).withOpacity(0.08),
-              radius: 22,
-              child: const Icon(Icons.person_outline_rounded, color: Color(0xFF6B52A3), size: 22),
+            onTap: () {
+              // AHORA SÍ navegamos correctamente hacia el perfil sin destruir el inicio
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileView(isWeb: true)),
+              );
+            },
+            borderRadius: BorderRadius.circular(30),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3EDF7),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.person_outline_rounded, color: Color(0xFF6B52A3), size: 20),
+                  const SizedBox(width: 8),
+                  Text("Mi Perfil", style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, color: const Color(0xFF6B52A3), fontSize: 15)),
+                ],
+              ),
             ),
           ),
         ),
@@ -243,69 +256,62 @@ class _WebLayout extends StatelessWidget {
   Widget _buildBannerPlantillaInfo() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(48),
+      padding: const EdgeInsets.all(56),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF6B52A3).withOpacity(0.06),
-            const Color(0xFFEAB8FF).withOpacity(0.15),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        color: const Color(0xFF1D1B20), 
+        borderRadius: BorderRadius.circular(40),
+        image: DecorationImage(
+          image: const NetworkImage('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2000&auto=format&fit=crop'),
+          fit: BoxFit.cover,
+          colorFilter: ColorFilter.mode(const Color(0xFF1D1B20).withOpacity(0.85), BlendMode.srcOver),
         ),
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: const Color(0xFF6B52A3).withOpacity(0.1)),
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            "Conoce nuestra plantilla informativa", 
-            style: GoogleFonts.dmSans(fontSize: 30, fontWeight: FontWeight.bold, color: const Color(0xFF332255))
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Descarga nuestra plantilla informativa", 
+                  style: GoogleFonts.dmSans(fontSize: 40, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -1)
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  "Ten a la mano información vital, números de emergencia y pasos a seguir.", 
+                  style: TextStyle(fontSize: 18, color: Colors.white70, height: 1.5)
+                ),
+                const SizedBox(height: 40),
+                FilledButton.icon(
+                  onPressed: () async {
+                    final Uri url = Uri.parse('https://drive.google.com/file/d/1FOoF8lHy_5GpIyB0C9BN2mW8KRbrnjsC/view?usp=sharing'); 
+                    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {}
+                  },
+                  icon: const Icon(Icons.download_rounded),
+                  label: const Text("Descargar PDF Gratuito", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFEAB8FF),
+                    foregroundColor: const Color(0xFF221144),
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
-          const Text(
-            "Escanea el código QR o haz clic en el botón para descargar nuestro archivo PDF.", 
-            textAlign: TextAlign.center, 
-            style: TextStyle(fontSize: 16, color: Colors.black54)
-          ),
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Contenedor del código QR
-              Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF6B52A3).withOpacity(0.2), width: 2),
-                ),
-                child: Center(
-                  // Puedes reemplazar este Icono por: Image.network('url_de_tu_qr.png')
-                  child: Image.asset('assets/QRCartilla.png'),
-                ),
-              ),
-              const SizedBox(width: 48),
-              // Botón del PDF
-              FilledButton.icon(
-                onPressed: () async {
-                  final Uri url = Uri.parse('https://drive.google.com/file/d/1FOoF8lHy_5GpIyB0C9BN2mW8KRbrnjsC/view?usp=sharing'); // <-- Reemplaza con tu enlace PDF real
-                  if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-                    debugPrint('No se pudo abrir $url');
-                  }
-                },
-                icon: const Icon(Icons.picture_as_pdf_rounded),
-                label: const Text("Descargar PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF6B52A3),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 22),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 2,
-                ),
-              ),
-            ],
+          const SizedBox(width: 48),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 40, offset: const Offset(0, 20))],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset('assets/QRCartilla.png', width: 160, height: 160, fit: BoxFit.cover),
+            ),
           ),
         ],
       ),
@@ -327,31 +333,43 @@ class _MobileLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isWebMobile = kIsWeb; 
+
     return Scaffold(
       extendBody: true, 
+      extendBodyBehindAppBar: selectedIndex == 0, 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: selectedIndex == 0 ? Colors.transparent : const Color(0xFFFAF9FC),
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Text(
-          selectedIndex == 1 ? "Marco Legal" : selectedIndex == 2 ? "ChatBot" : selectedIndex == 3 ? "Mi Perfil" : "Bienvenido", 
-          style: GoogleFonts.dmSans(color: const Color(0xFF221144), fontWeight: FontWeight.bold, fontSize: 20)
-        ),
+        iconTheme: IconThemeData(color: selectedIndex == 0 ? Colors.white : const Color(0xFF1D1B20)),
+        title: selectedIndex != 0 ? Text(
+          selectedIndex == 1 ? "Marco Legal" : "ChatBot", // Simplificado al quitar perfil de aquí
+          style: GoogleFonts.dmSans(color: const Color(0xFF1D1B20), fontWeight: FontWeight.bold, fontSize: 20) 
+        ) : null,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 20.0),
-            child: CircleAvatar(
-              backgroundColor: const Color(0xFF6B52A3).withOpacity(0.1), 
-              radius: 18, 
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                icon: const Icon(Icons.person, size: 18, color: Color(0xFF6B52A3)),
-                onPressed: () => onDestinationSelected(3),
-              )
+            padding: const EdgeInsets.only(right: 16.0),
+            child: IconButton(
+              icon: Icon(
+                Icons.account_circle_rounded, 
+                size: 28, 
+                color: selectedIndex == 0 ? Colors.white : const Color(0xFF6B52A3)
+              ),
+              onPressed: () {
+                // AHORA SÍ navegamos correctamente hacia el perfil
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfileView(isWeb: false)),
+                );
+              },
             ),
           ),
         ],
       ),
+      
+      drawer: isWebMobile ? _buildSideMenu(context) : null, 
+
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         child: KeyedSubtree(
@@ -359,162 +377,232 @@ class _MobileLayout extends StatelessWidget {
           child: _buildMobileBody(),
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          margin: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF6B52A3).withOpacity(0.12), 
-                blurRadius: 25, 
-                offset: const Offset(0, 10)
-              )
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(32),
-            child: NavigationBar(
-              height: 68,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              indicatorColor: const Color(0xFF6B52A3).withOpacity(0.15),
-              selectedIndex: selectedIndex,
-              onDestinationSelected: onDestinationSelected,
-              destinations: const [
-                NavigationDestination(icon: Icon(Icons.home_outlined, color: Colors.black54), selectedIcon: Icon(Icons.home, color: Color(0xFF6B52A3)), label: 'Inicio'),
-                NavigationDestination(icon: Icon(Icons.gavel_outlined, color: Colors.black54), selectedIcon: Icon(Icons.gavel, color: Color(0xFF6B52A3)), label: 'Legal'),
-                NavigationDestination(icon: Icon(Icons.chat_bubble_outline_rounded, color: Colors.black54), selectedIcon: Icon(Icons.chat_bubble, color: Color(0xFF6B52A3)), label: 'ChatBot'),
-                NavigationDestination(icon: Icon(Icons.person_outline, color: Colors.black54), selectedIcon: Icon(Icons.person, color: Color(0xFF6B52A3)), label: 'Perfil'),
+      
+      // La barra de navegación inferior ya no necesita ocultarse para el perfil
+      bottomNavigationBar: !isWebMobile ? _buildBottomNavBar() : null,
+    );
+  }
+
+  Widget _buildSideMenu(BuildContext context) {
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(top: 80, bottom: 40, left: 32, right: 32),
+            decoration: const BoxDecoration(color: Color(0xFF1D1B20)), 
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1), 
+                    borderRadius: BorderRadius.circular(16)
+                  ),
+                  child: const Icon(Icons.shield_outlined, color: Colors.white, size: 32),
+                ),
+                const SizedBox(height: 24),
+                Text("VozSegura", style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 28, letterSpacing: -1)),
               ],
             ),
           ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              children: [
+                _buildDrawerItem(context, icon: Icons.home_rounded, title: "Inicio", index: 0),
+                _buildDrawerItem(context, icon: Icons.gavel_rounded, title: "Marco Legal", index: 1),
+                _buildDrawerItem(context, icon: Icons.chat_bubble_rounded, title: "ChatBot", index: 2),
+                
+                // Opción del drawer separada para que haga la navegación correcta a Perfil
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: ListTile(
+                    leading: const Icon(Icons.person_rounded, color: Color(0xFF49454F)),
+                    title: Text(
+                      "Mi Perfil",
+                      style: GoogleFonts.dmSans(
+                        color: const Color(0xFF1D1B20),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)), 
+                    onTap: () {
+                      Navigator.pop(context); // Cierra el drawer primero
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ProfileView(isWeb: kIsWeb)),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(BuildContext context, {required IconData icon, required String title, required int index}) {
+    final isSelected = selectedIndex == index;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: ListTile(
+        leading: Icon(icon, color: isSelected ? const Color(0xFF6B52A3) : const Color(0xFF49454F)),
+        title: Text(
+          title,
+          style: GoogleFonts.dmSans(
+            color: isSelected ? const Color(0xFF6B52A3) : const Color(0xFF1D1B20),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+            fontSize: 16,
+          ),
         ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)), 
+        tileColor: isSelected ? const Color(0xFF6B52A3).withOpacity(0.1) : Colors.transparent,
+        onTap: () {
+          onDestinationSelected(index);
+          Navigator.pop(context); 
+        },
+      ),
+    );
+  }
+
+  Widget _buildBottomNavBar() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: Colors.black.withOpacity(0.05), width: 1)),
+      ),
+      child: NavigationBar(
+        height: 65, 
+        backgroundColor: Colors.white.withOpacity(0.95), 
+        elevation: 0,
+        indicatorColor: const Color(0xFF6B52A3).withOpacity(0.15),
+        selectedIndex: selectedIndex,
+        onDestinationSelected: onDestinationSelected,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.home_outlined, color: Color(0xFF49454F)), 
+            selectedIcon: const Icon(Icons.home_rounded, color: Color(0xFF221144)), 
+            label: 'Inicio'
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.gavel_outlined, color: Color(0xFF49454F)), 
+            selectedIcon: const Icon(Icons.gavel_rounded, color: Color(0xFF221144)), 
+            label: 'Legal'
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF49454F)), 
+            selectedIcon: const Icon(Icons.chat_bubble_rounded, color: Color(0xFF221144)), 
+            label: 'ChatBot'
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildMobileBody() {
     switch (selectedIndex) {
-      case 1:
-        return const LegalView(isWeb: false);
-      case 2:
-        return const ChatBotView(isWeb: false);
-      case 3:
-        return const ProfileView(isWeb: false);
+      case 1: return const LegalView(isWeb: false);
+      case 2: return const ChatBotView(isWeb: false);
+      // Eliminamos el case 3 (Perfil)
       case 0:
       default:
         return SingleChildScrollView(
-          padding: const EdgeInsets.only(top: 10.0, bottom: 110.0),
+          padding: const EdgeInsets.only(bottom: 100.0), 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: HeroBanner(isWeb: false, onChatTap: () => onDestinationSelected(2)),
-              ),
+              HeroBanner(isWeb: false, onChatTap: () => onDestinationSelected(2)),
+              const SizedBox(height: 24),
+              
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
                 child: SupabaseSeccionesDinamicas(isWeb: false),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 40),
               
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
-                child: SectionTitle(title: "¿En dónde puede\nexistir la VSBG?"),
+                child: SectionTitle(isWeb: false, title: "¿En dónde puede\nexistir la violencia?", subtitle: "Conoce los espacios."),
               ),
               const SizedBox(height: 16),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
                 child: SupabaseLugaresVSBG(isWeb: false),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
 
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
-                child: SectionTitle(title: "Mitos vs Realidades"),
+                child: SectionTitle(isWeb: false, title: "Mitos vs Realidades", subtitle: "Lo que debes saber."),
               ),
               const SizedBox(height: 16),
               const SupabaseMitos(isWeb: false),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
 
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
-                child: SectionTitle(title: "El Violentómetro"),
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text("Presta atención a las señales.", style: TextStyle(color: Colors.black54)),
+                child: SectionTitle(isWeb: false, title: "El Violentómetro", subtitle: "Presta atención a las señales."),
               ),
               const SizedBox(height: 16),
               const SupabaseViolentometro(isWeb: false),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
 
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
-                child: SectionTitle(title: "Videoteca"),
+                child: SectionTitle(isWeb: false, title: "Videos Relacionados", subtitle: "Recursos audiovisuales."),
               ),
               const SizedBox(height: 16),
               const SupabaseVideos(isWeb: false),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SectionTitle(title: "Conoce nuestra plantilla informativa"),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6B52A3).withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFF6B52A3).withOpacity(0.1)),
-                      ),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            
-                            child: Image.asset('assets/QRCartilla.png'),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            "Escanea el código o descarga el archivo para más detalles.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.black54, fontSize: 14),
-                          ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 54,
-                            child: FilledButton.icon(
-                              onPressed: () async {
-                                final Uri url = Uri.parse('https://drive.google.com/file/d/1FOoF8lHy_5GpIyB0C9BN2mW8KRbrnjsC/view?usp=sharing'); // <-- Reemplaza con tu enlace PDF real
-                                if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-                                  debugPrint('No se pudo abrir $url');
-                                }
-                              },
-                              icon: const Icon(Icons.picture_as_pdf_rounded, size: 22),
-                              label: const Text("Descargar PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFF6B52A3),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                child: Container(
+                  padding: const EdgeInsets.all(24), 
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1D1B20),
+                    borderRadius: BorderRadius.circular(24),
+                    image: DecorationImage(
+                      image: const NetworkImage('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop'),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(const Color(0xFF1D1B20).withOpacity(0.85), BlendMode.srcOver),
                     ),
-                  ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Plantilla Informativa", style: GoogleFonts.dmSans(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1)),
+                      const SizedBox(height: 8),
+                      const Text(
+                        "Descarga nuestra guía paso a paso para situaciones de emergencia.",
+                        style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48, 
+                        child: FilledButton.icon(
+                          onPressed: () async {
+                            final Uri url = Uri.parse('https://drive.google.com/file/d/1FOoF8lHy_5GpIyB0C9BN2mW8KRbrnjsC/view?usp=sharing'); 
+                            if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {}
+                          },
+                          icon: const Icon(Icons.download_rounded, size: 18),
+                          label: const Text("Descargar Guía", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFFEAB8FF),
+                            foregroundColor: const Color(0xFF221144),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)), 
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -542,27 +630,26 @@ class HeroBanner extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      height: isWeb ? 440 : 350, 
-      margin: EdgeInsets.only(bottom: isWeb ? 0 : 32), 
+      height: isWeb ? 520 : 580, 
       decoration: BoxDecoration(
-        borderRadius: isWeb ? BorderRadius.zero : BorderRadius.circular(28),
-        color: const Color(0xFFEBE8F0),
+        borderRadius: isWeb ? BorderRadius.circular(40) : const BorderRadius.vertical(bottom: Radius.circular(32)),
+        color: const Color(0xFF1D1B20),
       ),
+      margin: isWeb ? const EdgeInsets.only(top: 24, left: 40, right: 40, bottom: 40) : EdgeInsets.zero,
       child: ClipRRect(
-        borderRadius: isWeb ? BorderRadius.zero : BorderRadius.circular(28),
+        borderRadius: isWeb ? BorderRadius.circular(40) : const BorderRadius.vertical(bottom: Radius.circular(32)),
         child: StreamBuilder<List<Map<String, dynamic>>>(
           stream: streamBanners,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator(color: Colors.white54));
             }
             if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
               return const Center(
-                child: Text('Configura tus imágenes en Supabase', style: TextStyle(color: Colors.black45)),
+                child: Text('Error de conexión, intentalo nuevamente.', style: TextStyle(color: Colors.white54)),
               );
             }
-            final banners = snapshot.data!;
-            return _AutoCarousel(banners: banners, isWeb: isWeb, onChatTap: onChatTap);
+            return _AutoCarousel(banners: snapshot.data!, isWeb: isWeb, onChatTap: onChatTap);
           },
         ),
       ),
@@ -590,8 +677,7 @@ class _AutoCarouselState extends State<_AutoCarousel> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
-
-    _timer = Timer.periodic(const Duration(seconds: 6), (Timer timer) {
+    _timer = Timer.periodic(const Duration(seconds: 7), (Timer timer) {
       if (_currentPage < widget.banners.length - 1) {
         _currentPage++;
       } else {
@@ -600,7 +686,7 @@ class _AutoCarouselState extends State<_AutoCarousel> {
       if (_pageController.hasClients) {
         _pageController.animateToPage(
           _currentPage,
-          duration: const Duration(milliseconds: 900),
+          duration: const Duration(milliseconds: 1200),
           curve: Curves.easeInOutCubic,
         );
       }
@@ -614,84 +700,96 @@ class _AutoCarouselState extends State<_AutoCarousel> {
     super.dispose();
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return PageView.builder(
       controller: _pageController,
       itemCount: widget.banners.length,
       physics: const BouncingScrollPhysics(),
-      onPageChanged: (int page) {
-        setState(() { _currentPage = page; });
-      },
+      onPageChanged: (int page) => setState(() => _currentPage = page),
       itemBuilder: (context, index) {
         final banner = widget.banners[index];
-        final imageUrl = banner['imagen_url'] ?? '';
-        final title = banner['titulo'] ?? 'Sin título';
-        final subtitle = banner['subtitulo'] ?? '';
-
-        return Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: NetworkImage(imageUrl),
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.network(
+              banner['imagen_url'] ?? '',
               fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.55), 
-                BlendMode.darken
+            ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.1),
+                    Colors.black.withOpacity(0.6),
+                    const Color(0xFF1D1B20).withOpacity(0.9),
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
               ),
             ),
-          ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: widget.isWeb ? 1440 : double.infinity),
+            SafeArea(
               child: Padding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: widget.isWeb ? 60.0 : 24.0, 
-                  vertical: 40.0
+                  horizontal: widget.isWeb ? 80.0 : 20.0, 
+                  vertical: widget.isWeb ? 60.0 : 20.0 
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.end, 
                   children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: const Color(0xFFEAB8FF).withOpacity(0.2), borderRadius: BorderRadius.circular(100)),
+                      child: Text("Tu espacio seguro", style: GoogleFonts.dmSans(color: const Color(0xFFEAB8FF), fontWeight: FontWeight.bold, fontSize: widget.isWeb ? 13 : 11)),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
-                      title,
+                      banner['titulo'] ?? 'Sin título',
                       style: GoogleFonts.dmSans(
-                        fontSize: widget.isWeb ? 58 : 34,
+                        fontSize: widget.isWeb ? 64 : 28,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
+                        letterSpacing: -1.0,
                         height: 1.1,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: widget.isWeb ? 25 : 8),
                     SizedBox(
-                      width: widget.isWeb ? 750 : double.infinity,
+                      width: widget.isWeb ? 650 : double.infinity,
                       child: Text(
-                        subtitle,
+                        banner['subtitulo'] ?? '',
+                        maxLines: 3, 
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: widget.isWeb ? 20 : 16, 
-                          color: Colors.white.withOpacity(0.85), 
-                          height: 1.5
+                          fontSize: widget.isWeb ? 20 : 14, 
+                          color: Colors.white70, 
+                          height: 1.3,
+                          fontWeight: FontWeight.w400
                         ),
                       ),
                     ),
-                    const SizedBox(height: 36),
+                    SizedBox(height: widget.isWeb ? 32 : 16),
                     FilledButton.icon(
                       onPressed: widget.onChatTap,
-                      icon: const Icon(Icons.chat_bubble_rounded, size: 22),
-                      label: const Text("Hablar con el ChatBot", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      icon: Icon(Icons.chat_bubble_rounded, size: widget.isWeb ? 20 : 16),
+                      label: Text("Hablar con el Asistente", style: TextStyle(fontSize: widget.isWeb ? 16 : 14, fontWeight: FontWeight.bold)),
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFFEAB8FF), 
-                        foregroundColor: const Color(0xFF221144),
-                        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 22),
-                        elevation: 4,
-                        shadowColor: Colors.black.withOpacity(0.3),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        backgroundColor: Colors.white, 
+                        foregroundColor: const Color(0xFF1D1B20),
+                        padding: EdgeInsets.symmetric(horizontal: widget.isWeb ? 32 : 24, vertical: widget.isWeb ? 20 : 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
                       ),
                     ),
+                    SizedBox(height: widget.isWeb ? 20 : 0),
                   ],
                 ),
               ),
             ),
-          ),
+          ],
         );
       },
     );
@@ -699,11 +797,10 @@ class _AutoCarouselState extends State<_AutoCarousel> {
 }
 
 /* =============================================================================
-   MÓDULO: SECCIONES INFORMATIVAS DINÁMICAS
+   MÓDULO: SECCIONES INFORMATIVAS
    ============================================================================= */
 class SupabaseSeccionesDinamicas extends StatelessWidget {
   final bool isWeb;
-  
   const SupabaseSeccionesDinamicas({super.key, required this.isWeb});
 
   @override
@@ -716,84 +813,54 @@ class SupabaseSeccionesDinamicas extends StatelessWidget {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: streamDatos,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: Padding(padding: EdgeInsets.all(40.0), child: CircularProgressIndicator()),
-          );
-        }
-        if (snapshot.hasError) {
-          return Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.red.withOpacity(0.1),
-            child: Text('Error de conexión con la base de datos: ${snapshot.error}'),
-          );
-        }
-
-        final secciones = snapshot.data;
-        if (secciones == null || secciones.isEmpty) {
-          return const Center(child: Text('Cargando módulos educativos...'));
-        }
+        if (!snapshot.hasData) return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+        final secciones = snapshot.data!;
 
         if (isWeb) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SectionTitle(title: "Módulos de Información"),
-              const SizedBox(height: 28),
+              const SectionTitle(isWeb: true, title: "Módulos de Información", subtitle: "Todo lo que necesitas saber de forma clara."),
+              const SizedBox(height: 32),
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 480, 
-                  mainAxisExtent: 145, 
-                  crossAxisSpacing: 28,
-                  mainAxisSpacing: 28,
+                  maxCrossAxisExtent: 450, 
+                  mainAxisExtent: 160, 
+                  crossAxisSpacing: 24,
+                  mainAxisSpacing: 24,
                 ),
                 itemCount: secciones.length,
-                itemBuilder: (context, index) {
-                  final seccion = secciones[index];
-                  return _AnimatedWebGridCard(seccion: seccion);
-                },
+                itemBuilder: (context, index) => _AnimatedWebGridCard(seccion: secciones[index]),
               ),
-              const SizedBox(height: 40), 
             ],
           );
         } else {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SectionTitle(title: "Módulos de Información"),
-              const SizedBox(height: 18),
+              const SectionTitle(isWeb: false, title: "Módulos de Información", subtitle: "Conceptos clave explicados."),
+              const SizedBox(height: 16), 
               SizedBox(
-                height: 230, 
+                height: 140, 
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   clipBehavior: Clip.none, 
                   itemCount: secciones.length,
                   itemBuilder: (context, index) {
-                    final seccion = secciones[index];
                     return Container(
-                      width: 290, 
-                      margin: const EdgeInsets.only(right: 18),
+                      width: 260, 
+                      margin: const EdgeInsets.only(right: 12),
                       child: MobilePreviewCard(
-                        title: seccion['titulo'] ?? 'Sin título',
-                        previewText: seccion['texto_previo'] ?? 'Resumen no disponible',
-                        fullContent: seccion['contenido_completo'] ?? 'Contenido completo no disponible',
+                        title: secciones[index]['titulo'] ?? 'Sin título',
+                        previewText: secciones[index]['texto_previo'] ?? '',
+                        fullContent: secciones[index]['contenido_completo'] ?? '',
                       ),
                     );
                   },
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.swipe_left_rounded, size: 16, color: Colors.black38),
-                  SizedBox(width: 8),
-                  Text("Desliza para ver más", style: TextStyle(fontSize: 13, color: Colors.black38, fontWeight: FontWeight.w500)),
-                ],
-              ),
-              const SizedBox(height: 24),
             ],
           );
         }
@@ -811,65 +878,53 @@ class _AnimatedWebGridCard extends StatelessWidget {
     return ValueNotifierWrapper(
       builder: (context, isHovered) {
         return AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          transform: Matrix4.identity()..translate(0, isHovered ? -5 : 0),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          transform: Matrix4.identity()..translate(0, isHovered ? -4 : 0),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: isHovered ? const Color(0xFF6B52A3).withOpacity(0.4) : const Color(0xFFEBE8F0), 
-              width: 1.5
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: isHovered ? const Color(0xFF6B52A3).withOpacity(0.08) : Colors.black.withOpacity(0.02),
-                blurRadius: isHovered ? 20 : 10,
-                offset: isHovered ? const Offset(0, 8) : const Offset(0, 4),
-              )
-            ],
+            color: isHovered ? Colors.white : const Color(0xFFF3EDF7), 
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: isHovered ? [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 24, offset: const Offset(0, 12))] : [],
           ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(22),
-            onTap: () => _mostrarGlobalModalWeb(
-              context, 
-              seccion['titulo'] ?? 'Sin título', 
-              seccion['contenido_completo'] ?? 'Contenido no disponible'
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isHovered ? const Color(0xFF6B52A3) : const Color(0xFF6B52A3).withOpacity(0.07), 
-                      shape: BoxShape.circle
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(28),
+              onTap: () => _mostrarGlobalModalWeb(context, seccion['titulo'] ?? '', seccion['contenido_completo'] ?? ''),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isHovered ? const Color(0xFF6B52A3) : Colors.white, 
+                        borderRadius: BorderRadius.circular(20)
+                      ),
+                      child: Icon(Icons.menu_book_rounded, color: isHovered ? Colors.white : const Color(0xFF6B52A3)),
                     ),
-                    child: Icon(Icons.menu_book_rounded, color: isHovered ? Colors.white : const Color(0xFF6B52A3)),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          seccion['titulo'] ?? 'Sin título', 
-                          style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF221144)),
-                          maxLines: 1, overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          seccion['texto_previo'] ?? 'Haz clic para leer más...', 
-                          style: const TextStyle(fontSize: 14, color: Colors.black54, height: 1.3),
-                          maxLines: 2, overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            seccion['titulo'] ?? '', 
+                            style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1D1B20)),
+                            maxLines: 1, overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            seccion['texto_previo'] ?? '', 
+                            style: const TextStyle(fontSize: 14, color: Color(0xFF49454F), height: 1.4),
+                            maxLines: 2, overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -879,93 +934,79 @@ class _AnimatedWebGridCard extends StatelessWidget {
   }
 }
 
-class ValueNotifierWrapper extends StatefulWidget {
-  final Widget Function(BuildContext context, bool isHovered) builder;
-  const ValueNotifierWrapper({super.key, required this.builder});
-
-  @override
-  State<ValueNotifierWrapper> createState() => _ValueNotifierWrapperState();
-}
-
-class _ValueNotifierWrapperState extends State<ValueNotifierWrapper> {
-  bool _isHovered = false;
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: widget.builder(context, _isHovered),
-    );
-  }
-}
-
 /* =============================================================================
-   MÓDULO: LUGARES VSBG DINÁMICO (Corregido a Carrusel Horizontal)
+   MÓDULO: LUGARES VSBG
    ============================================================================= */
 class SupabaseLugaresVSBG extends StatelessWidget {
   final bool isWeb;
-  
   const SupabaseLugaresVSBG({super.key, required this.isWeb});
 
   @override
   Widget build(BuildContext context) {
-    final streamLugares = Supabase.instance.client
-        .from('lugares_vsbg')
-        .stream(primaryKey: ['id'])
-        .order('orden', ascending: true);
+    final streamLugares = Supabase.instance.client.from('lugares_vsbg').stream(primaryKey: ['id']).order('orden');
 
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: streamLugares,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: Padding(padding: EdgeInsets.all(20.0), child: CircularProgressIndicator()));
-        }
-        if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
-          return const Text('Configura los lugares en Supabase', style: TextStyle(color: Colors.black45));
-        }
-
+        if (!snapshot.hasData) return const SizedBox();
         final lugares = snapshot.data!;
 
-        // Usamos SizedBox con un ListView horizontal para evitar que se aplasten
         return SizedBox(
-          height: 110, // Altura suficiente para contener la tarjeta sin cortar la sombra
+          height: isWeb ? 120 : 90, 
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(), // Efecto de rebote nativo
+            clipBehavior: Clip.none,
             itemCount: lugares.length,
             itemBuilder: (context, index) {
               final lugar = lugares[index];
-              
               return Container(
-                width: 320, // ¡Aquí está la magia! Un ancho fijo para que la tarjeta respire
-                margin: EdgeInsets.only(right: isWeb ? 24.0 : 16.0),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () {
-                    if (isWeb) {
-                      // Abre modal en versión Web
-                      _mostrarGlobalModalWeb(
-                        context, 
-                        lugar['titulo'] ?? 'Sin título', 
-                        lugar['contenido_completo'] ?? 'Contenido no disponible'
-                      );
-                    } else {
-                      // Abre nueva pantalla en versión Móvil
-                      Navigator.push(
-                        context, 
-                        MaterialPageRoute(
-                          builder: (context) => DetailScreen(
-                            title: lugar['titulo'] ?? 'Sin título', 
-                            content: lugar['contenido_completo'] ?? 'Contenido no disponible'
-                          )
-                        )
-                      );
-                    }
-                  },
-                  child: VerticalInfoCard(
-                    avatarLetter: lugar['letra_avatar'] ?? '-',
-                    title: lugar['titulo'] ?? 'Sin título',
-                    subtitle: lugar['subtitulo'] ?? '',
+                width: isWeb ? 400 : 280, 
+                margin: EdgeInsets.only(right: isWeb ? 24 : 12),
+                child: Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  elevation: 0,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(24),
+                    onTap: () {
+                      if (isWeb) {
+                        _mostrarGlobalModalWeb(context, lugar['titulo'] ?? '', lugar['contenido_completo'] ?? '');
+                      } else {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => DetailScreen(title: lugar['titulo'] ?? '', content: lugar['contenido_completo'] ?? '')));
+                      }
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFEBE8F0), width: 1.5),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isWeb ? 24 : 16, 
+                        vertical: isWeb ? 20 : 12
+                      ), 
+                      child: Row(
+                        children: [
+                          Container(
+                            width: isWeb ? 48 : 40, height: isWeb ? 48 : 40,
+                            decoration: BoxDecoration(color: const Color(0xFFF3EDF7), borderRadius: BorderRadius.circular(12)),
+                            child: Center(child: Text(lugar['letra_avatar'] ?? '-', style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, color: const Color(0xFF6B52A3), fontSize: isWeb ? 20 : 16))),
+                          ),
+                          const SizedBox(width: 16), 
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(lugar['titulo'] ?? '', style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, fontSize: isWeb ? 18 : 15, color: const Color(0xFF1D1B20)), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                const SizedBox(height: 2),
+                                Text(lugar['subtitulo'] ?? '', style: TextStyle(color: const Color(0xFF49454F), fontSize: isWeb ? 14 : 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.arrow_forward_ios_rounded, color: const Color(0xFFCAC4D0), size: isWeb ? 16 : 14),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -990,55 +1031,62 @@ class SupabaseMitos extends StatelessWidget {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: stream,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData) return const SizedBox();
         final mitos = snapshot.data!;
         
         return SizedBox(
-          height: 250,
+          height: isWeb ? 340 : 260, 
           child: ListView.builder(
-            padding: EdgeInsets.symmetric(horizontal: isWeb ? 0 : 20.0),
+            padding: EdgeInsets.symmetric(horizontal: isWeb ? 0 : 20.0), 
+            clipBehavior: Clip.none,
             scrollDirection: Axis.horizontal,
             itemCount: mitos.length,
             itemBuilder: (context, index) {
               final mito = mitos[index];
               return Container(
-                width: isWeb ? 400 : 300,
-                margin: EdgeInsets.only(right: isWeb ? 24 : 16),
+                width: isWeb ? 420 : 280, 
+                margin: EdgeInsets.only(right: isWeb ? 32 : 12),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFFEBE8F0)),
                   color: Colors.white,
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+                  borderRadius: BorderRadius.circular(isWeb ? 32 : 20),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 24, offset: const Offset(0, 12))],
                 ),
                 child: Column(
                   children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFFEBEE), 
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.cancel, color: Color(0xFFD32F2F)),
-                            const SizedBox(width: 12),
-                            Expanded(child: Text(mito['mito'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFB71C1C), fontSize: 15))),
-                          ],
-                        ),
+                    Container(
+                      padding: EdgeInsets.all(isWeb ? 24 : 16), 
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFB3261E).withOpacity(0.06), 
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(isWeb ? 32 : 20)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.close_rounded, color: const Color(0xFFB3261E), size: isWeb ? 24 : 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              mito['mito'] ?? '', 
+                              style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, color: const Color(0xFF8C1D18), fontSize: isWeb ? 16 : 14, height: 1.3)
+                            )
+                          ),
+                        ],
                       ),
                     ),
                     Expanded(
-                      flex: 2,
                       child: Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: EdgeInsets.all(isWeb ? 24 : 16), 
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.check_circle, color: Color(0xFF388E3C)),
+                            Icon(Icons.check_circle_outline_rounded, color: const Color(0xFF386A20), size: isWeb ? 24 : 20),
                             const SizedBox(width: 12),
-                            Expanded(child: Text(mito['realidad'] ?? '', style: const TextStyle(color: Colors.black87, fontSize: 14, height: 1.4))),
+                            Expanded(
+                              child: Text(
+                                mito['realidad'] ?? '', 
+                                style: TextStyle(color: const Color(0xFF1D1B20), fontSize: isWeb ? 15 : 13, height: 1.4) 
+                              )
+                            ),
                           ],
                         ),
                       ),
@@ -1062,9 +1110,9 @@ class SupabaseViolentometro extends StatelessWidget {
   const SupabaseViolentometro({super.key, required this.isWeb});
 
   Color _getColorForNivel(int nivel) {
-    if (nivel == 1) return const Color(0xFFFDD835); 
-    if (nivel == 2) return const Color(0xFFFB8C00); 
-    return const Color(0xFFE53935); 
+    if (nivel == 1) return const Color(0xFFF9A825); 
+    if (nivel == 2) return const Color(0xFFE65100); 
+    return const Color(0xFFB3261E); 
   }
 
   @override
@@ -1073,48 +1121,44 @@ class SupabaseViolentometro extends StatelessWidget {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: stream,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-        final items = snapshot.data!;
+        if (!snapshot.hasData) return const SizedBox();
         
-        return SizedBox(
-          height: 90,
-          child: ListView.builder(
-            padding: EdgeInsets.symmetric(horizontal: isWeb ? 0 : 20.0),
-            scrollDirection: Axis.horizontal,
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: isWeb ? 0 : 20.0),
+          child: Wrap(
+            spacing: isWeb ? 12 : 8, 
+            runSpacing: isWeb ? 12 : 8,
+            children: snapshot.data!.map((item) {
               final nivel = item['nivel'] as int? ?? 1;
               final color = _getColorForNivel(nivel);
               
               return Container(
-                width: 200,
-                margin: EdgeInsets.only(right: isWeb ? 16 : 12),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isWeb ? 20 : 14, 
+                  vertical: isWeb ? 12 : 8
+                ),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: color.withOpacity(0.5), width: 2),
+                  color: color.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(100), 
+                  border: Border.all(color: color.withOpacity(0.2)),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircleAvatar(
-                      backgroundColor: color,
-                      radius: 14,
-                      child: Text(nivel.toString(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                      child: Icon(Icons.warning_rounded, color: Colors.white, size: isWeb ? 14 : 12),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        item['accion'] ?? '', 
-                        style: TextStyle(fontWeight: FontWeight.bold, color: color.withOpacity(0.9), fontSize: 14),
-                        maxLines: 2, overflow: TextOverflow.ellipsis,
-                      ),
+                    const SizedBox(width: 8),
+                    Text(
+                      item['accion'] ?? '', 
+                      style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: isWeb ? 14 : 12),
                     ),
                   ],
                 ),
               );
-            },
+            }).toList(),
           ),
         );
       },
@@ -1129,81 +1173,68 @@ class SupabaseVideos extends StatelessWidget {
   final bool isWeb;
   const SupabaseVideos({super.key, required this.isWeb});
 
-  Future<void> _launchUrl(String urlString) async {
-    final Uri url = Uri.parse(urlString);
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      debugPrint('No se pudo abrir $urlString');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final stream = Supabase.instance.client.from('videos_educativos').stream(primaryKey: ['id']).order('orden');
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: stream,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData) return const SizedBox();
         final videos = snapshot.data!;
         
         return SizedBox(
-          height: isWeb ? 260 : 220,
+          height: isWeb ? 300 : 220, 
           child: ListView.builder(
             padding: EdgeInsets.symmetric(horizontal: isWeb ? 0 : 20.0),
+            clipBehavior: Clip.none,
             scrollDirection: Axis.horizontal,
             itemCount: videos.length,
             itemBuilder: (context, index) {
               final video = videos[index];
               return Container(
-                width: isWeb ? 340 : 280,
-                margin: EdgeInsets.only(right: isWeb ? 24 : 16),
+                width: isWeb ? 400 : 240, 
+                margin: EdgeInsets.only(right: isWeb ? 32 : 16),
                 child: InkWell(
-                  onTap: () => _launchUrl(video['video_url'] ?? 'https://youtube.com'),
-                  borderRadius: BorderRadius.circular(24),
+                  onTap: () async {
+                    final Uri url = Uri.parse(video['video_url'] ?? 'https://youtube.com');
+                    launchUrl(url, mode: LaunchMode.externalApplication);
+                  },
+                  borderRadius: BorderRadius.circular(isWeb ? 32 : 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(24),
+                            borderRadius: BorderRadius.circular(isWeb ? 24 : 16),
                             image: DecorationImage(
                               image: NetworkImage(video['thumbnail_url'] ?? ''),
                               fit: BoxFit.cover,
                             ),
                           ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
-                              color: Colors.black.withOpacity(0.3),
-                            ),
-                            child: Center(
-                              child: CircleAvatar(
-                                radius: 28,
-                                backgroundColor: Colors.white.withOpacity(0.9),
-                                child: const Icon(Icons.play_arrow_rounded, color: Color(0xFF6B52A3), size: 36),
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5), 
+                                shape: BoxShape.circle,
                               ),
+                              child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: isWeb ? 36 : 28),
                             ),
                           ),
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(color: const Color(0xFF6B52A3).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                            child: Text(video['duracion'] ?? '0:00', style: const TextStyle(color: Color(0xFF6B52A3), fontWeight: FontWeight.bold, fontSize: 12)),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              video['titulo'] ?? '', 
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF221144)),
-                              maxLines: 2, overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        video['titulo'] ?? '', 
+                        style: GoogleFonts.dmSans(
+                          fontWeight: FontWeight.bold, 
+                          fontSize: isWeb ? 18 : 15, 
+                          color: const Color(0xFF1D1B20), 
+                          height: 1.2
+                        ),
+                        maxLines: 2, 
+                        overflow: TextOverflow.ellipsis, 
                       ),
                     ],
                   ),
@@ -1218,94 +1249,62 @@ class SupabaseVideos extends StatelessWidget {
 }
 
 /* =============================================================================
-   FUNCIONES GLOBALES Y COMPONENTES REUTILIZABLES COMPARTIDOS
+   FUNCIONES GLOBALES Y COMPONENTES COMPARTIDOS
    ============================================================================= */
 void _mostrarGlobalModalWeb(BuildContext context, String title, String content) {
   showDialog(
     context: context,
-    barrierDismissible: true,
+    barrierColor: const Color(0xFF1D1B20).withOpacity(0.4), 
     builder: (BuildContext context) {
       return Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0.9, end: 1.0),
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutBack,
-          builder: (context, scale, child) {
-            return Transform.scale(
-              scale: scale,
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 800, maxHeight: 620),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 30, offset: const Offset(0, 15))]
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+        backgroundColor: Colors.white,
+        child: Container(
+          width: 800,
+          height: 650,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(40)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
+                color: const Color(0xFFF3EDF7),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    Expanded(child: Text(title, style: GoogleFonts.dmSans(fontSize: 28, fontWeight: FontWeight.bold, color: const Color(0xFF1D1B20), letterSpacing: -0.5))),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 28),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6B52A3).withOpacity(0.05),
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(title, style: GoogleFonts.dmSans(fontSize: 24, fontWeight: FontWeight.bold, color: const Color(0xFF221144))),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close_rounded, color: Colors.black54),
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(36),
-                        child: MarkdownBody(
-                          data: content.replaceAll(r'\n', '\n'),
-                          styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                            p: const TextStyle(fontSize: 16, height: 1.6, color: Colors.black87),
-                            h1: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF221144)),
-                            h2: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF221144)),
-                            listBullet: const TextStyle(color: Color(0xFF6B52A3), fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(28.0),
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: FilledButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF6B52A3),
-                            padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 18),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          ),
-                          child: const Text("Entendido", style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                      ),
+                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                      child: IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
                     ),
                   ],
                 ),
               ),
-            );
-          },
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(40),
+                  child: MarkdownBody(
+                    data: content.replaceAll(r'\n', '\n'),
+                    styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                      p: const TextStyle(fontSize: 17, height: 1.6, color: Color(0xFF49454F)),
+                      h1: GoogleFonts.dmSans(fontSize: 26, fontWeight: FontWeight.bold, color: const Color(0xFF1D1B20)),
+                      h2: GoogleFonts.dmSans(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF1D1B20)),
+                      listBullet: const TextStyle(color: Color(0xFF6B52A3), fontSize: 18),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     },
   );
 }
 
-class _WebNavButton extends StatefulWidget {
+class _WebNavButton extends StatelessWidget {
   final String title;
   final bool isActive;
   final VoidCallback onTap;
@@ -1313,38 +1312,123 @@ class _WebNavButton extends StatefulWidget {
   const _WebNavButton({required this.title, required this.isActive, required this.onTap});
 
   @override
-  State<_WebNavButton> createState() => _WebNavButtonState();
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(30), 
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            color: isActive ? const Color(0xFF1D1B20) : Colors.transparent, 
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Text(
+            title, 
+            style: GoogleFonts.dmSans(
+              fontWeight: FontWeight.bold, 
+              fontSize: 15,
+              color: isActive ? Colors.white : const Color(0xFF49454F)
+            )
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _WebNavButtonState extends State<_WebNavButton> {
+class ValueNotifierWrapper extends StatefulWidget {
+  final Widget Function(BuildContext context, bool isHovered) builder;
+  const ValueNotifierWrapper({super.key, required this.builder});
+  @override
+  State<ValueNotifierWrapper> createState() => _ValueNotifierWrapperState();
+}
+class _ValueNotifierWrapperState extends State<ValueNotifierWrapper> {
   bool _isHovered = false;
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: widget.builder(context, _isHovered),
+    );
+  }
+}
+
+class SectionTitle extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool isWeb; 
+
+  const SectionTitle({super.key, required this.title, required this.subtitle, this.isWeb = false});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6.0),
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            color: widget.isActive 
-                ? const Color(0xFF6B52A3).withOpacity(0.08) 
-                : _isHovered ? const Color(0xFF6B52A3).withOpacity(0.03) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TextButton(
-            onPressed: widget.onTap,
-            style: TextButton.styleFrom(
-              foregroundColor: widget.isActive ? const Color(0xFF6B52A3) : Colors.black54,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: Text(
-              widget.title, 
-              style: TextStyle(fontWeight: widget.isActive ? FontWeight.bold : FontWeight.w500, fontSize: 16)
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title, 
+          style: GoogleFonts.dmSans(
+            fontSize: isWeb ? 32 : 24, 
+            fontWeight: FontWeight.w800, 
+            color: const Color(0xFF1D1B20), 
+            letterSpacing: -0.5, 
+            height: 1.1
+          )
+        ),
+        SizedBox(height: isWeb ? 8 : 4),
+        Text(
+          subtitle, 
+          style: TextStyle(
+            fontSize: isWeb ? 16 : 14, 
+            color: const Color(0xFF49454F)
+          )
+        ),
+      ],
+    );
+  }
+}
+
+class MobilePreviewCard extends StatelessWidget {
+  final String title;
+  final String previewText;
+  final String fullContent;
+  const MobilePreviewCard({super.key, required this.title, required this.previewText, required this.fullContent});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20), 
+      ),
+      child: InkWell(
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen(title: title, content: fullContent))),
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16), 
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(title, style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF1D1B20)), maxLines: 2),
+                    const SizedBox(height: 6),
+                    Text(previewText, style: const TextStyle(fontSize: 13, color: Color(0xFF49454F), height: 1.3), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(color: Color(0xFFF3EDF7), shape: BoxShape.circle),
+                child: const Icon(Icons.arrow_forward_rounded, color: Color(0xFF6B52A3), size: 18),
+              ),
+            ],
           ),
         ),
       ),
@@ -1355,7 +1439,6 @@ class _WebNavButtonState extends State<_WebNavButton> {
 class DetailScreen extends StatelessWidget {
   final String title;
   final String content;
-
   const DetailScreen({super.key, required this.title, required this.content});
 
   @override
@@ -1365,146 +1448,30 @@ class DetailScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        title: Text(title, style: GoogleFonts.dmSans(color: const Color(0xFF221144), fontWeight: FontWeight.bold, fontSize: 18)),
+        iconTheme: const IconThemeData(color: Color(0xFF1D1B20)),
       ),
       body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: double.infinity,
-              height: 220,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF6B52A3), Color(0xFFEAB8FF)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ), 
-                borderRadius: BorderRadius.circular(24)
-              ),
-              child: const Icon(Icons.shield_outlined, size: 64, color: Colors.white30),
+              width: double.infinity, height: 160,
+              decoration: BoxDecoration(color: const Color(0xFFF3EDF7), borderRadius: BorderRadius.circular(24)),
+              child: const Icon(Icons.menu_book_rounded, size: 54, color: Color(0xFF6B52A3)),
             ),
-            const SizedBox(height: 32),
-            Text(title, style: GoogleFonts.dmSans(fontSize: 28, fontWeight: FontWeight.bold, color: const Color(0xFF221144))),
+            const SizedBox(height: 24),
+            Text(title, style: GoogleFonts.dmSans(fontSize: 28, fontWeight: FontWeight.w800, color: const Color(0xFF1D1B20), letterSpacing: -1)),
             const SizedBox(height: 16),
-            
             MarkdownBody(
               data: content.replaceAll(r'\n', '\n'), 
               styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                p: const TextStyle(fontSize: 16, height: 1.6, color: Colors.black87),
-                h1: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF221144)),
-                h2: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF221144)),
+                p: const TextStyle(fontSize: 16, height: 1.5, color: Color(0xFF49454F)),
+                h1: GoogleFonts.dmSans(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF1D1B20)),
                 listBullet: const TextStyle(color: Color(0xFF6B52A3), fontSize: 16),
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class MobilePreviewCard extends StatelessWidget {
-  final String title;
-  final String previewText;
-  final String fullContent;
-
-  const MobilePreviewCard({super.key, required this.title, required this.previewText, required this.fullContent});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFEBE8F0), width: 1.5),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12, offset: const Offset(0, 4))
-        ],
-      ),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen(title: title, content: fullContent)));
-        },
-        borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          padding: const EdgeInsets.all(22),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(title, style: GoogleFonts.dmSans(fontSize: 19, fontWeight: FontWeight.bold, color: const Color(0xFF221144)), maxLines: 2, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 8),
-                    Text(previewText, style: const TextStyle(fontSize: 14, color: Colors.black54, height: 1.3), maxLines: 3, overflow: TextOverflow.ellipsis),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: const Color(0xFF6B52A3).withOpacity(0.08), shape: BoxShape.circle),
-                child: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFF6B52A3)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class SectionTitle extends StatelessWidget {
-  final String title;
-  const SectionTitle({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title, 
-      style: GoogleFonts.dmSans(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF221144), height: 1.2)
-    );
-  }
-}
-
-class VerticalInfoCard extends StatelessWidget {
-  final String avatarLetter;
-  final String title;
-  final String subtitle;
-
-  const VerticalInfoCard({super.key, required this.avatarLetter, required this.title, required this.subtitle});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFEBE8F0), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 2))],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        leading: CircleAvatar(
-          backgroundColor: const Color(0xFF6B52A3).withOpacity(0.12),
-          radius: 22,
-          child: Text(avatarLetter, style: const TextStyle(color: Color(0xFF6B52A3), fontWeight: FontWeight.bold, fontSize: 16)),
-        ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF221144))),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4.0),
-          child: Text(subtitle, style: const TextStyle(fontSize: 13, color: Colors.black54)),
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: const Color(0xFFFAFAFC), borderRadius: BorderRadius.circular(10)),
-          child: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.black26, size: 14),
         ),
       ),
     );
