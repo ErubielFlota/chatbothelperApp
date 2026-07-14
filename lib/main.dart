@@ -8,8 +8,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart'; 
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-// Importaciones de tus vistas modulares
+// aqui importamos las vistas para que pueda hacer los cambios de página
 import 'views/chatbot_view.dart';
 import 'views/legal_view.dart';
 import 'views/profile_view.dart';
@@ -51,7 +50,7 @@ class ChatbotHelperApp extends StatelessWidget {
     const seedColor = Color(0xFF6B52A3);
     
     return MaterialApp(
-      title: 'VozSegura', 
+      title: 'ChatBot Helper', 
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -138,7 +137,7 @@ class _WebLayout extends StatelessWidget {
     switch (selectedIndex) {
       case 1: return const LegalView(isWeb: true);
       case 2: return const ChatBotView(isWeb: true);
-      // Eliminamos el case 3 (Perfil) porque ahora se abre por encima con Navigator.push
+
       case 0:
       default:
         return SingleChildScrollView(
@@ -212,7 +211,7 @@ class _WebLayout extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           Text(
-            "VozSegura", 
+            "ChatBot Helper", 
             style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, color: const Color(0xFF1D1B20), fontSize: 24, letterSpacing: -0.5)
           ),
         ],
