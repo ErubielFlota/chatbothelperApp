@@ -8,10 +8,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart'; 
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
-// aqui importamos las vistas para que pueda hacer los cambios de página
+
+// Importamos las vistas para que pueda hacer los cambios de página
 import 'views/chatbot_view.dart';
 import 'views/legal_view.dart';
 import 'views/profile_view.dart';
+import 'views/mapa_instituciones.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -161,6 +163,9 @@ class _WebLayout extends StatelessWidget {
                         const SupabaseLugaresVSBG(isWeb: true),
                         const SizedBox(height: 80),
 
+                        const BannerMapaApoyo(isWeb: true),
+                        const SizedBox(height: 80),
+
                         const SectionTitle(isWeb: true, title: "Mitos vs Realidades", subtitle: "Desmintiendo creencias comunes."),
                         const SizedBox(height: 32),
                         const SupabaseMitos(isWeb: true),
@@ -225,7 +230,6 @@ class _WebLayout extends StatelessWidget {
           padding: const EdgeInsets.only(right: 60.0),
           child: InkWell(
             onTap: () {
-              // AHORA SÍ navegamos correctamente hacia el perfil sin destruir el inicio
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ProfileView(isWeb: true)),
@@ -343,7 +347,7 @@ class _MobileLayout extends StatelessWidget {
         scrolledUnderElevation: 0,
         iconTheme: IconThemeData(color: selectedIndex == 0 ? Colors.white : const Color(0xFF1D1B20)),
         title: selectedIndex != 0 ? Text(
-          selectedIndex == 1 ? "Marco Legal" : "ChatBot", // Simplificado al quitar perfil de aquí
+          selectedIndex == 1 ? "Marco Legal" : "ChatBot", 
           style: GoogleFonts.dmSans(color: const Color(0xFF1D1B20), fontWeight: FontWeight.bold, fontSize: 20) 
         ) : null,
         actions: [
@@ -356,7 +360,6 @@ class _MobileLayout extends StatelessWidget {
                 color: selectedIndex == 0 ? Colors.white : const Color(0xFF6B52A3)
               ),
               onPressed: () {
-                // AHORA SÍ navegamos correctamente hacia el perfil
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const ProfileView(isWeb: false)),
@@ -377,7 +380,6 @@ class _MobileLayout extends StatelessWidget {
         ),
       ),
       
-      // La barra de navegación inferior ya no necesita ocultarse para el perfil
       bottomNavigationBar: !isWebMobile ? _buildBottomNavBar() : null,
     );
   }
@@ -415,7 +417,6 @@ class _MobileLayout extends StatelessWidget {
                 _buildDrawerItem(context, icon: Icons.gavel_rounded, title: "Marco Legal", index: 1),
                 _buildDrawerItem(context, icon: Icons.chat_bubble_rounded, title: "ChatBot", index: 2),
                 
-                // Opción del drawer separada para que haga la navegación correcta a Perfil
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
                   child: ListTile(
@@ -430,7 +431,7 @@ class _MobileLayout extends StatelessWidget {
                     ),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)), 
                     onTap: () {
-                      Navigator.pop(context); // Cierra el drawer primero
+                      Navigator.pop(context); 
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const ProfileView(isWeb: kIsWeb)),
@@ -508,7 +509,6 @@ class _MobileLayout extends StatelessWidget {
     switch (selectedIndex) {
       case 1: return const LegalView(isWeb: false);
       case 2: return const ChatBotView(isWeb: false);
-      // Eliminamos el case 3 (Perfil)
       case 0:
       default:
         return SingleChildScrollView(
@@ -535,6 +535,13 @@ class _MobileLayout extends StatelessWidget {
                 child: SupabaseLugaresVSBG(isWeb: false),
               ),
               const SizedBox(height: 40),
+
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.0),
+                child: BannerMapaApoyo(isWeb: false),
+              ),
+              const SizedBox(height: 40),
+
 
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
@@ -855,6 +862,7 @@ class SupabaseSeccionesDinamicas extends StatelessWidget {
                         title: secciones[index]['titulo'] ?? 'Sin título',
                         previewText: secciones[index]['texto_previo'] ?? '',
                         fullContent: secciones[index]['contenido_completo'] ?? '',
+                        imagenUrl: secciones[index]['imagen_url'], // Pasamos la URL al componente móvil
                       ),
                     );
                   },
@@ -889,7 +897,8 @@ class _AnimatedWebGridCard extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(28),
-              onTap: () => _mostrarGlobalModalWeb(context, seccion['titulo'] ?? '', seccion['contenido_completo'] ?? ''),
+              // Pasamos la URL al método de visualización web
+              onTap: () => _mostrarGlobalModalWeb(context, seccion['titulo'] ?? '', seccion['contenido_completo'] ?? '', seccion['imagen_url']),
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Row(
@@ -936,12 +945,14 @@ class _AnimatedWebGridCard extends StatelessWidget {
 /* =============================================================================
    MÓDULO: LUGARES VSBG
    ============================================================================= */
+
 class SupabaseLugaresVSBG extends StatelessWidget {
   final bool isWeb;
   const SupabaseLugaresVSBG({super.key, required this.isWeb});
 
   @override
   Widget build(BuildContext context) {
+    // Obtenemos los datos de la base de datos ordenados
     final streamLugares = Supabase.instance.client.from('lugares_vsbg').stream(primaryKey: ['id']).order('orden');
 
     return StreamBuilder<List<Map<String, dynamic>>>(
@@ -968,10 +979,25 @@ class SupabaseLugaresVSBG extends StatelessWidget {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(24),
                     onTap: () {
+                      // AQUÍ ESTÁ EL CAMBIO: Pasamos la imagen_url a las vistas de detalle
                       if (isWeb) {
-                        _mostrarGlobalModalWeb(context, lugar['titulo'] ?? '', lugar['contenido_completo'] ?? '');
+                        _mostrarGlobalModalWeb(
+                          context, 
+                          lugar['titulo'] ?? '', 
+                          lugar['contenido_completo'] ?? '',
+                          lugar['imagen_url'] // Enviamos la imagen web
+                        );
                       } else {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => DetailScreen(title: lugar['titulo'] ?? '', content: lugar['contenido_completo'] ?? '')));
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(
+                            builder: (_) => DetailScreen(
+                              title: lugar['titulo'] ?? '', 
+                              content: lugar['contenido_completo'] ?? '',
+                              imagenUrl: lugar['imagen_url'] 
+                            )
+                          )
+                        );
                       }
                     },
                     child: Container(
@@ -988,7 +1014,12 @@ class SupabaseLugaresVSBG extends StatelessWidget {
                           Container(
                             width: isWeb ? 48 : 40, height: isWeb ? 48 : 40,
                             decoration: BoxDecoration(color: const Color(0xFFF3EDF7), borderRadius: BorderRadius.circular(12)),
-                            child: Center(child: Text(lugar['letra_avatar'] ?? '-', style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, color: const Color(0xFF6B52A3), fontSize: isWeb ? 20 : 16))),
+                            child: Center(
+                              child: Text(
+                                lugar['letra_avatar'] ?? '-', 
+                                style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, color: const Color(0xFF6B52A3), fontSize: isWeb ? 20 : 16)
+                              )
+                            ),
                           ),
                           const SizedBox(width: 16), 
                           Expanded(
@@ -996,9 +1027,19 @@ class SupabaseLugaresVSBG extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(lugar['titulo'] ?? '', style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, fontSize: isWeb ? 18 : 15, color: const Color(0xFF1D1B20)), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                Text(
+                                  lugar['titulo'] ?? '', 
+                                  style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, fontSize: isWeb ? 18 : 15, color: const Color(0xFF1D1B20)), 
+                                  maxLines: 1, 
+                                  overflow: TextOverflow.ellipsis
+                                ),
                                 const SizedBox(height: 2),
-                                Text(lugar['subtitulo'] ?? '', style: TextStyle(color: const Color(0xFF49454F), fontSize: isWeb ? 14 : 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                Text(
+                                  lugar['subtitulo'] ?? '', 
+                                  style: TextStyle(color: const Color(0xFF49454F), fontSize: isWeb ? 14 : 12), 
+                                  maxLines: 1, 
+                                  overflow: TextOverflow.ellipsis
+                                ),
                               ],
                             ),
                           ),
@@ -1250,7 +1291,9 @@ class SupabaseVideos extends StatelessWidget {
 /* =============================================================================
    FUNCIONES GLOBALES Y COMPONENTES COMPARTIDOS
    ============================================================================= */
-void _mostrarGlobalModalWeb(BuildContext context, String title, String content) {
+
+// Modificamos esta función para aceptar la imagen opcionalmente
+void _mostrarGlobalModalWeb(BuildContext context, String title, String content, [String? imagenUrl]) {
   showDialog(
     context: context,
     barrierColor: const Color(0xFF1D1B20).withOpacity(0.4), 
@@ -1284,14 +1327,40 @@ void _mostrarGlobalModalWeb(BuildContext context, String title, String content) 
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(40),
-                  child: MarkdownBody(
-                    data: content.replaceAll(r'\n', '\n'),
-                    styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                      p: const TextStyle(fontSize: 17, height: 1.6, color: Color(0xFF49454F)),
-                      h1: GoogleFonts.dmSans(fontSize: 26, fontWeight: FontWeight.bold, color: const Color(0xFF1D1B20)),
-                      h2: GoogleFonts.dmSans(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF1D1B20)),
-                      listBullet: const TextStyle(color: Color(0xFF6B52A3), fontSize: 18),
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Renderizamos la imagen en la vista web si existe
+                      if (imagenUrl != null && imagenUrl.isNotEmpty)
+                        Container(
+                          width: double.infinity,
+                          height: 250,
+                          margin: const EdgeInsets.only(bottom: 32),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            color: const Color(0xFFF3EDF7),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: Image.network(
+                              imagenUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => const Center(
+                                child: Icon(Icons.image_not_supported_rounded, color: Color(0xFF6B52A3), size: 40)
+                              ),
+                            ),
+                          ),
+                        ),
+                      MarkdownBody(
+                        data: content.replaceAll(r'\n', '\n'),
+                        styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                          p: const TextStyle(fontSize: 17, height: 1.6, color: Color(0xFF49454F)),
+                          h1: GoogleFonts.dmSans(fontSize: 26, fontWeight: FontWeight.bold, color: const Color(0xFF1D1B20)),
+                          h2: GoogleFonts.dmSans(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF1D1B20)),
+                          listBullet: const TextStyle(color: Color(0xFF6B52A3), fontSize: 18),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1394,7 +1463,15 @@ class MobilePreviewCard extends StatelessWidget {
   final String title;
   final String previewText;
   final String fullContent;
-  const MobilePreviewCard({super.key, required this.title, required this.previewText, required this.fullContent});
+  final String? imagenUrl; // Añadimos la URL como parámetro
+
+  const MobilePreviewCard({
+    super.key, 
+    required this.title, 
+    required this.previewText, 
+    required this.fullContent,
+    this.imagenUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1404,7 +1481,8 @@ class MobilePreviewCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20), 
       ),
       child: InkWell(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen(title: title, content: fullContent))),
+        // Pasamos la URL a la vista de detalle
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen(title: title, content: fullContent, imagenUrl: imagenUrl))),
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(16), 
@@ -1438,7 +1516,14 @@ class MobilePreviewCard extends StatelessWidget {
 class DetailScreen extends StatelessWidget {
   final String title;
   final String content;
-  const DetailScreen({super.key, required this.title, required this.content});
+  final String? imagenUrl; // Parámetro para recibir la imagen
+
+  const DetailScreen({
+    super.key, 
+    required this.title, 
+    required this.content,
+    this.imagenUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1454,10 +1539,32 @@ class DetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Contenedor dinámico que revisa si hay imagen
             Container(
-              width: double.infinity, height: 160,
-              decoration: BoxDecoration(color: const Color(0xFFF3EDF7), borderRadius: BorderRadius.circular(24)),
-              child: const Icon(Icons.menu_book_rounded, size: 54, color: Color(0xFF6B52A3)),
+              width: double.infinity, 
+              height: 200,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3EDF7), 
+                borderRadius: BorderRadius.circular(24)
+              ),
+              child: (imagenUrl != null && imagenUrl!.isNotEmpty)
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.network(
+                      imagenUrl!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Icon(Icons.menu_book_rounded, size: 54, color: Color(0xFF6B52A3))
+                        );
+                      },
+                    ),
+                  )
+                : const Center(
+                    child: Icon(Icons.menu_book_rounded, size: 54, color: Color(0xFF6B52A3))
+                  ),
             ),
             const SizedBox(height: 24),
             Text(title, style: GoogleFonts.dmSans(fontSize: 28, fontWeight: FontWeight.w800, color: const Color(0xFF1D1B20), letterSpacing: -1)),
@@ -1472,6 +1579,95 @@ class DetailScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+/* =============================================================================
+   MÓDULO: BANNER DE MAPA DE APOYO
+   ============================================================================= */
+class BannerMapaApoyo extends StatelessWidget {
+  final bool isWeb;
+  const BannerMapaApoyo({super.key, required this.isWeb});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isWeb ? 40 : 24),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3EDF7), 
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFEBE8F0), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Color(0xFF6B52A3),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.map_rounded, color: Colors.white, size: 32),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Puntos de Apoyo Seguros",
+                  style: GoogleFonts.dmSans(
+                    fontSize: isWeb ? 22 : 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1D1B20),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "Encuentra instituciones y líneas de atención cercanas en el área metropolitana.",
+                  style: TextStyle(
+                    fontSize: isWeb ? 15 : 13,
+                    color: const Color(0xFF49454F),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isWeb) const SizedBox(width: 40),
+          
+          // Botón para Web (Con texto)
+          if (isWeb)
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MapaInstitucionesView(isWeb: true)),
+                );
+              },
+              icon: const Icon(Icons.arrow_forward_rounded),
+              label: const Text("Abrir Mapa"),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF6B52A3),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              ),
+            ),
+            
+          // Botón para Móvil (Solo ícono para ahorrar espacio)
+          if (!isWeb)
+            IconButton.filled(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MapaInstitucionesView(isWeb: false)),
+                );
+              },
+              icon: const Icon(Icons.arrow_forward_rounded),
+              style: IconButton.styleFrom(
+                backgroundColor: const Color(0xFF6B52A3),
+              ),
+            ),
+        ],
       ),
     );
   }
